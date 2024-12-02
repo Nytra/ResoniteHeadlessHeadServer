@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\Headless\rml_libs\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Elements.Core">
+      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\Headless\Elements.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="FrooxEngine">
+      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\Headless\FrooxEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\Headless\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  
+  <Target Name="CustomCopy" AfterTargets="PostBuildEvent">
+  <ItemGroup>
+    <FilesToCopy Include="$(OutputPath)\ConnectorTest1.dll" />
+  </ItemGroup>
+  <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="G:\SteamLibrary\steamapps\common\Resonite\Headless\HeadlessLibraries" />
+  </Target>
+
+</Project>

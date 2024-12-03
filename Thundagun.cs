@@ -18,9 +18,7 @@ public class Thundagun
 		if (pipeServer.IsConnected)
 		{
 			sw.WriteLine(packet.Name);
-			//var bw = new BinaryWriter(sw.BaseStream);
 			packet.Serialize(bw);
-			pipeServer.WaitForPipeDrain();
 		}
 	}
 	public static void Setup(string[] args)

@@ -8,7 +8,6 @@ namespace Thundagun.NewConnectors;
 
 public class WorldConnector : IWorldConnector
 {
-	//public GameObject WorldRoot { get; set; }
 	public World Owner { get; set; }
 
 	public void Initialize(World owner)

@@ -1,28 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elements.Core;
+﻿using Elements.Core;
 using FrooxEngine;
-//using MsgPack.Serialization;
-//using MsgPack;
 using UnityEngine;
-using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Text.Json.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Thundagun.NewConnectors;
 
 public class SlotConnector : Connector<Slot>, ISlotConnector
 {
-	//public bool Active;
-	//public byte ForceLayer;
-	//public ushort GameObjectRequests;
 	public SlotConnector ParentConnector;
-	//public bool ShouldDestroy;
 	public ulong RefID;
 
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
@@ -32,21 +16,16 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 		UniLog.Log("Slot connector initialize");
 		RefID = Owner.ReferenceID.Position;
 		ParentConnector = Owner.Parent?.Connector as SlotConnector;
-
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
 	}
 
 	public override void ApplyChanges()
 	{
-		//UniLog.Log("Slot connector apply changes");
-
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void Destroy(bool destroyingWorld)
 	{
-		//if (Owner.GetComponent<FrooxEngine.MeshRenderer>() == null) return;
-
 		UniLog.Log("Slot connector destroy");
 		Thundagun.QueuePacket(new DestroySlotConnector(this, destroyingWorld));
 	}
@@ -149,7 +128,6 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 	public DestroySlotConnector(SlotConnector owner, bool destroyingWorld) : base(owner)
 	{
 		RefID = owner.RefID;
-		//owner.ShouldDestroy = true;
 	}
 
 	public override void Serialize(BinaryWriter bw)

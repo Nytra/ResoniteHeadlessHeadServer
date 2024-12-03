@@ -3,27 +3,24 @@ using System.IO.Pipes;
 using System.Diagnostics;
 using System.Reflection;
 using Thundagun.NewConnectors;
+using System.Text;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Thundagun;
 
 public class Thundagun
 {
 	private static StreamWriter sw;
+	private static BinaryWriter bw;
 	private static NamedPipeServerStream pipeServer;
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		if (pipeServer.IsConnected)
 		{
-			if (packet is ApplyChangesSlotConnector packetApplyChangesSlot)
-			{
-				sw.WriteLine("slotinit");
-				var bw = new BinaryWriter(sw.BaseStream);
-				packetApplyChangesSlot.Serialize(bw);
-			}
-			else if (packet is InitializeWorldConnector packetInitializeWorldConnector)
-			{
-				sw.WriteLine("worldinit");
-			}
+			sw.WriteLine(packet.Name);
+			//var bw = new BinaryWriter(sw.BaseStream);
+			packet.Serialize(bw);
+			pipeServer.WaitForPipeDrain();
 		}
 	}
 	public static void Setup(string[] args)
@@ -54,6 +51,8 @@ public class Thundagun
 		sw = new StreamWriter(pipeServer);
 		sw.AutoFlush = true;
 
+		bw = new BinaryWriter(pipeServer);
+
 		// Send a 'sync message' and wait for client to receive it.
 		sw.WriteLine("SYNC");
 		pipeServer.WaitForPipeDrain();
@@ -67,8 +66,8 @@ public class Thundagun
 
 public abstract class UpdatePacket<T> : IUpdatePacket
 {
+	public string Name => GetType().Name;
 	public T Owner;
-
 	public UpdatePacket(T owner)
 	{
 		Owner = owner;
@@ -78,5 +77,6 @@ public abstract class UpdatePacket<T> : IUpdatePacket
 
 public interface IUpdatePacket
 {
+	public string Name { get; }
 	public void Serialize(BinaryWriter bw);
 }

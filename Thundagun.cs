@@ -67,10 +67,12 @@ public abstract class UpdatePacket<T> : IUpdatePacket
 		Owner = owner;
 	}
 	public abstract void Serialize(BinaryWriter bw);
+	public abstract void Deserialize(BinaryReader bw);
 }
 
 public interface IUpdatePacket
 {
 	public string Name { get; }
 	public void Serialize(BinaryWriter bw);
+	public void Deserialize(BinaryReader bw);
 }

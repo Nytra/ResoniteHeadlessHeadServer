@@ -42,6 +42,9 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 	public override void Serialize(BinaryWriter bw)
 	{
 	}
+	public override void Deserialize(BinaryReader bw)
+	{
+	}
 }
 
 public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
@@ -56,6 +59,9 @@ public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 	public override void Serialize(BinaryWriter bw)
 	{
 	}
+	public override void Deserialize(BinaryReader bw)
+	{
+	}
 }
 
 public class DestroyWorldConnector : UpdatePacket<WorldConnector>
@@ -65,6 +71,9 @@ public class DestroyWorldConnector : UpdatePacket<WorldConnector>
 	}
 
 	public override void Serialize(BinaryWriter bw)
+	{
+	}
+	public override void Deserialize(BinaryReader bw)
 	{
 	}
 }

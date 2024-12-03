@@ -8,9 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\Headless\rml_libs\0Harmony.dll</HintPath>
-    </Reference>
     <Reference Include="Elements.Core">
       <HintPath>G:\SteamLibrary\steamapps\common\Resonite\Headless\Elements.Core.dll</HintPath>
     </Reference>

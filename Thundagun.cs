@@ -9,12 +9,12 @@ public class Thundagun
 	private static StreamWriter sw;
 	private static BinaryWriter bw;
 	private static NamedPipeServerStream pipeServer;
+	private static Queue<IUpdatePacket> packets;
 	public static void QueuePacket(IUpdatePacket packet)
 	{
-		if (pipeServer.IsConnected)
+		lock (packets)
 		{
-			sw.WriteLine(packet.Name);
-			packet.Serialize(bw);
+			packets.Enqueue(packet);
 		}
 	}
 	public static void Setup(string[] args)
@@ -55,6 +55,39 @@ public class Thundagun
 		{
 			//sw.WriteLine(str);
 		};
+
+		Task.Run(async () => 
+		{ 
+			while (true)
+			{
+				if (childProcess.HasExited)
+				{
+					Process.GetCurrentProcess().Kill();
+				}
+				await Task.Delay(1000);
+			}
+		});
+
+		Task.Run(async () => 
+		{
+			while (true)
+			{
+				if (pipeServer.IsConnected)
+				{
+					if (packets.Count > 0)
+					{
+						IUpdatePacket packet;
+						lock (packets)
+						{
+							packet = packets.Dequeue();
+						}
+						sw.WriteLine(packet.Name);
+						packet.Serialize(bw);
+					}
+				}
+				await Task.Delay(1);
+			}
+		});
 	}
 }
 

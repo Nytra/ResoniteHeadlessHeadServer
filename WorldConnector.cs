@@ -2,7 +2,6 @@
 using FrooxEngine;
 using System.Runtime.Serialization;
 using UnityEngine;
-//using UnityEngine;
 
 namespace Thundagun.NewConnectors;
 

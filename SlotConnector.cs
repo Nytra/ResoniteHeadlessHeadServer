@@ -61,15 +61,24 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			Reparent = true;
 			newParentId = o.Parent.ReferenceID.Position;
 		}
-		var skinnedMesh = owner.Owner.GetComponentInParents<FrooxEngine.SkinnedMeshRenderer>();
-		if (skinnedMesh != null && skinnedMesh.Bones.Contains(owner.Owner))
-		{
-			HasRenderer = true;
-		}
-		else
-		{
-			HasRenderer = owner.Owner.GetComponent<FrooxEngine.MeshRenderer>() != null;
-		}
+		//var meshRenderer = owner.Owner.GetComponentInParents<FrooxEngine.MeshRenderer>();
+		//if (meshRenderer != null)
+		//{
+		//	HasRenderer = true;
+		//}
+		//else
+		//{
+		//	HasRenderer = false;
+		//}
+		//if (skinnedMesh != null && skinnedMesh.Bones.Contains(owner.Owner))
+		//{
+		//	HasRenderer = true;
+		//}
+		//else
+		//{
+		//	HasRenderer = owner.Owner.GetComponent<FrooxEngine.MeshRenderer>() != null;
+		//}
+		HasRenderer = true;
 	}
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
@@ -86,15 +95,16 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			Reparent = true;
 			newParentId = o.Parent.ReferenceID.Position;
 		}
-		var skinnedMesh = owner.Owner.GetComponentInParents<FrooxEngine.SkinnedMeshRenderer>();
-		if (skinnedMesh != null && skinnedMesh.Bones.Contains(owner.Owner))
-		{
-			HasRenderer = true;
-		}
-		else
-		{
-			HasRenderer = owner.Owner.GetComponent<FrooxEngine.MeshRenderer>() != null;
-		}
+		//var skinnedMesh = owner.Owner.GetComponentInParents<FrooxEngine.SkinnedMeshRenderer>();
+		//if (skinnedMesh != null && skinnedMesh.Bones.Contains(owner.Owner))
+		//{
+		//	HasRenderer = true;
+		//}
+		//else
+		//{
+		//	HasRenderer = owner.Owner.GetComponent<FrooxEngine.MeshRenderer>() != null;
+		//}
+		HasRenderer = true;
 	}
 
 	public override void Serialize(BinaryWriter bw)

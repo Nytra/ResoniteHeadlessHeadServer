@@ -9,7 +9,7 @@ public class Thundagun
 	private static StreamWriter sw;
 	private static BinaryWriter bw;
 	private static NamedPipeServerStream pipeServer;
-	private static Queue<IUpdatePacket> packets;
+	private static Queue<IUpdatePacket> packets = new();
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		lock (packets)

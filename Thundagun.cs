@@ -74,7 +74,7 @@ public class Thundagun
 			{
 				if (pipeServer.IsConnected)
 				{
-					if (packets.Count > 0)
+					while (packets.Count > 0)
 					{
 						IUpdatePacket packet;
 						lock (packets)

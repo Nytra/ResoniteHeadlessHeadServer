@@ -7,13 +7,14 @@ namespace Thundagun.NewConnectors;
 public class SlotConnector : Connector<Slot>, ISlotConnector
 {
 	public ulong RefID;
-
+	public SlotConnector ParentConnector;
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
 
 	public override void Initialize()
 	{
 		UniLog.Log("Slot connector initialize");
 		RefID = Owner.ReferenceID.Position;
+		ParentConnector = Owner.Parent?.Connector as SlotConnector;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
@@ -48,6 +49,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public ulong ParentRefId;
 	public bool HasParent;
 	public bool IsRootSlot;
+	public bool Reparent;
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
 	{
@@ -65,6 +67,10 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
 		HasParent = parent != null;
 		IsRootSlot = o.IsRootSlot;
+		if (parent?.Connector != owner.ParentConnector && parent != null)
+		{
+			Reparent = true;
+		}
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -94,6 +100,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		bw.Write(HasParent);
 
 		bw.Write(IsRootSlot);
+
+		bw.Write(Reparent);
 	}
 	public override void Deserialize(BinaryReader br)
 	{
@@ -125,6 +133,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		HasParent = br.ReadBoolean();
 
 		IsRootSlot = br.ReadBoolean();
+
+		Reparent = br.ReadBoolean();
 	}
 	public override string ToString()
 	{
@@ -135,22 +145,26 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 public class DestroySlotConnector : UpdatePacket<SlotConnector>
 {
 	public ulong RefID;
+	public bool DestroyingWorld;
 
 	public DestroySlotConnector(SlotConnector owner, bool destroyingWorld) : base(owner)
 	{
 		RefID = owner.RefID;
+		DestroyingWorld = destroyingWorld;
 	}
 
 	public override void Serialize(BinaryWriter bw)
 	{
 		bw.Write(RefID);
+		bw.Write(DestroyingWorld);
 	}
 	public override void Deserialize(BinaryReader br)
 	{
 		RefID = br.ReadUInt64();
+		DestroyingWorld = br.ReadBoolean();
 	}
 	public override string ToString()
 	{
-		return $"DestroySlotConnector: {RefID}";
+		return $"DestroySlotConnector: {RefID} {DestroyingWorld}";
 	}
 }

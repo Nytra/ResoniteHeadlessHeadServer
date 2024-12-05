@@ -15,7 +15,7 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 		UniLog.Log("Slot connector initialize");
 		RefID = Owner.ReferenceID.Position;
 		ParentConnector = Owner.Parent?.Connector as SlotConnector;
-		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
+		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
 	}
 
 	public override void ApplyChanges()
@@ -50,6 +50,29 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool HasParent;
 	public bool IsRootSlot;
 	public bool Reparent;
+
+	public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
+	{
+		var o = owner.Owner;
+		var parent = o.Parent;
+		Active = o.ActiveSelf;
+		ActiveChanged = o.ActiveSelf_Field.GetWasChangedAndClear();
+		Position = o.Position_Field.Value.ToUnity();
+		PositionChanged = o.Position_Field.GetWasChangedAndClear();
+		Rotation = o.Rotation_Field.Value.EulerAngles.ToUnity();
+		RotationChanged = o.Rotation_Field.GetWasChangedAndClear();
+		Scale = o.Scale_Field.Value.ToUnity();
+		ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
+		RefId = owner.RefID;
+		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
+		HasParent = parent != null;
+		IsRootSlot = o.IsRootSlot;
+		if ((parent?.Connector != owner.ParentConnector && parent != null) || forceReparent)
+		{
+			owner.ParentConnector = parent?.Connector as SlotConnector;
+			Reparent = true;
+		}
+	}
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
 	{

@@ -6,15 +6,18 @@ namespace Thundagun;
 
 public class Thundagun
 {
-	private static StreamWriter sw;
 	private static BinaryWriter bw;
 	private static NamedPipeServerStream pipeServer;
-	private static Queue<IUpdatePacket> packets = new();
+	private static Process childProcess;
+	private const bool START_CHILD_PROCESS = false;
 	public static void QueuePacket(IUpdatePacket packet)
 	{
-		lock (packets)
+		UniLog.Log(packet.ToString());
+		if (pipeServer.IsConnected)
 		{
-			packets.Enqueue(packet);
+			bw.Write(packet.Name);
+			packet.Serialize(bw);
+			//bw.Flush();
 		}
 	}
 	public static void Setup(string[] args)
@@ -25,30 +28,30 @@ public class Thundagun
 
 		// Create a NamedPipeServerStream
 		pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.Out);
-		Console.WriteLine("Parent: Starting child process...");
 
-		// Configure the child process to start in a new window
-		var childProcess = new Process();
-		childProcess.StartInfo.FileName = @"HeadlessLibraries\Client\ResoniteThundagunHeadless.exe"; // Adjust to the child executable path
-		childProcess.StartInfo.Arguments = $"{pipeName}";
-		childProcess.StartInfo.UseShellExecute = true; // Run in a new window
-		childProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+		if (START_CHILD_PROCESS)
+		{
+			Console.WriteLine("Parent: Starting child process...");
 
-		// Start the child process
-		//childProcess.Start();
+			// Configure the child process to start in a new window
+			childProcess = new Process();
+			childProcess.StartInfo.FileName = @"HeadlessLibraries\Client\ResoniteThundagunHeadless.exe"; // Adjust to the child executable path
+			childProcess.StartInfo.Arguments = $"{pipeName}";
+			childProcess.StartInfo.UseShellExecute = true; // Run in a new window
+			childProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
 
-		Console.WriteLine("Parent: Waiting for the child to connect...");
+			// Start the child process
+			childProcess.Start();
+		}
+
+		Console.WriteLine("Parent: Waiting for the client to connect...");
 
 		pipeServer.WaitForConnection();
-
-		// Read user input and send that to the client process.
-		sw = new StreamWriter(pipeServer);
-		sw.AutoFlush = true;
 
 		bw = new BinaryWriter(pipeServer);
 
 		// Send a 'sync message' and wait for client to receive it.
-		sw.WriteLine("SYNC");
+		bw.Write("SYNC");
 		pipeServer.WaitForPipeDrain();
 
 		UniLog.OnLog += (string str) =>
@@ -56,38 +59,20 @@ public class Thundagun
 			//sw.WriteLine(str);
 		};
 
-		Task.Run(async () => 
-		{ 
-			while (true)
-			{
-				if (childProcess.HasExited)
-				{
-					Process.GetCurrentProcess().Kill();
-				}
-				await Task.Delay(1000);
-			}
-		});
-
-		Task.Run(async () => 
+		if (START_CHILD_PROCESS)
 		{
-			while (true)
+			Task.Run(async () =>
 			{
-				if (pipeServer.IsConnected)
+				while (true)
 				{
-					while (packets.Count > 0)
+					if (childProcess.HasExited)
 					{
-						IUpdatePacket packet;
-						lock (packets)
-						{
-							packet = packets.Dequeue();
-						}
-						sw.WriteLine(packet.Name);
-						packet.Serialize(bw);
+						Process.GetCurrentProcess().Kill();
 					}
+					await Task.Delay(1000);
 				}
-				await Task.Delay(1);
-			}
-		});
+			});
+		}
 	}
 }
 

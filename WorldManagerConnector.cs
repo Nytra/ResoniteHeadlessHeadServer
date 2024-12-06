@@ -5,16 +5,16 @@ public class WorldManagerConnector : IWorldManagerConnector
 {
 	public async Task Initialize(WorldManager owner)
 	{
-		UniLog.Log("World manager init");
+		UniLog.Log("World manager: initialize");
 	}
 
 	public void WorldAdded(World world)
 	{
-		UniLog.Log("World added");
+		UniLog.Log("World manager: world added");
 	}
 
 	public void WorldRemoved(World world)
 	{
-		UniLog.Log("World removed");
+		UniLog.Log("World manager: world removed");
 	}
 }

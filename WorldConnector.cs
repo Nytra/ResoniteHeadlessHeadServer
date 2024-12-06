@@ -14,20 +14,20 @@ public class WorldConnector : IWorldConnector
 	{
 		Owner = owner;
 		WorldId = owner.LocalWorldHandle;
-		UniLog.Log("World connector initialize");
+		//UniLog.Log("World connector initialize");
 		Thundagun.QueuePacket(new InitializeWorldConnector(this));
 	}
 
 	public void ChangeFocus(World.WorldFocus focus)
 	{
-		WorldId = Owner.LocalWorldHandle;
-		UniLog.Log("World connector change focus");
+		//WorldId = Owner.LocalWorldHandle;
+		//UniLog.Log("World connector change focus");
 		Thundagun.QueuePacket(new ChangeFocusWorldConnector(this, focus));
 	}
 
 	public void Destroy()
 	{
-		UniLog.Log("World connector destroy");
+		//UniLog.Log("World connector destroy");
 		Thundagun.QueuePacket(new DestroyWorldConnector(this));
 	}
 }
@@ -40,8 +40,6 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 	public InitializeWorldConnector(WorldConnector owner) : base(owner)
 	{
 		//connector = owner.Owner.WorldManager.Connector as WorldManagerConnector;
-
-		// ID: owner.Owner.LocalWorldHandle; (ulong)
 		WorldId = owner.WorldId;
 	}
 
@@ -52,6 +50,10 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 	public override void Deserialize(BinaryReader br)
 	{
 		WorldId = br.ReadInt64();
+	}
+	public override string ToString()
+	{
+		return $"InitializeWorldConnector: {WorldId}";
 	}
 }
 
@@ -76,6 +78,10 @@ public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 		Focus = br.ReadInt32();
 		WorldId = br.ReadInt64();
 	}
+	public override string ToString()
+	{
+		return $"ChangeFocusWorldConnector: {Focus} {WorldId}";
+	}
 }
 
 public class DestroyWorldConnector : UpdatePacket<WorldConnector>
@@ -93,5 +99,9 @@ public class DestroyWorldConnector : UpdatePacket<WorldConnector>
 	public override void Deserialize(BinaryReader br)
 	{
 		WorldId = br.ReadInt64();
+	}
+	public override string ToString()
+	{
+		return $"DestroyWorldConnector: {WorldId}";
 	}
 }

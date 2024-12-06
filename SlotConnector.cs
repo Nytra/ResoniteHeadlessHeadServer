@@ -13,24 +13,24 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 
 	public override void Initialize()
 	{
-		UniLog.Log("Slot connector initialize");
+		//UniLog.Log("Slot connector initialize");
 		RefID = Owner.ReferenceID.Position;
 		ParentConnector = Owner.Parent?.Connector as SlotConnector;
 		WorldId = Owner.World.LocalWorldHandle;
-		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
-		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
+		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
+		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void ApplyChanges()
 	{
-		RefID = Owner.ReferenceID.Position;
-		WorldId = Owner.World.LocalWorldHandle;
+		//RefID = Owner.ReferenceID.Position;
+		//WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void Destroy(bool destroyingWorld)
 	{
-		UniLog.Log("Slot connector destroy");
+		//UniLog.Log("Slot connector destroy");
 		Thundagun.QueuePacket(new DestroySlotConnector(this, destroyingWorld));
 	}
 
@@ -80,7 +80,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			Reparent = true;
 		}
 		SlotName = o.Name;
-		WorldId = owner.Owner.World.LocalWorldHandle;
+		WorldId = owner.WorldId;
 	}
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
@@ -105,7 +105,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			Reparent = true;
 		}
 		SlotName = o.Name;
-		WorldId = owner.Owner.World.LocalWorldHandle;
+		WorldId = owner.WorldId;
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -195,7 +195,7 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 	{
 		RefID = owner.RefID;
 		DestroyingWorld = destroyingWorld;
-		//WorldId = owner.Owner.World.LocalWorldHandle;
+		WorldId = owner.WorldId;
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -212,6 +212,6 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 	}
 	public override string ToString()
 	{
-		return $"DestroySlotConnector: {RefID} {DestroyingWorld}";
+		return $"DestroySlotConnector: {RefID} {DestroyingWorld} {WorldId}";
 	}
 }

@@ -11,7 +11,7 @@ public class Thundagun
 	private static NamedPipeServerStream pipeServer;
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
-	//private static Queue<IUpdatePacket> packets = new();
+	private static Queue<IUpdatePacket> packets = new();
 	//private static Thingy thingy = new();
 	//class Thingy
 	//{
@@ -23,8 +23,14 @@ public class Thundagun
 		//UniLog.Log(packet.ToString());
 		if (pipeServer.IsConnected)
 		{
-			bw.Write(packet.Name);
-			packet.Serialize(bw);
+			lock (packets)
+			{
+				packets.Enqueue(packet);
+			}
+			//bw.Write(packet.Name);
+			//packet.Serialize(bw);
+
+
 			//Thread.Sleep(1);
 			//packets.Enqueue(packet);
 			//if (packets.Count == 1)
@@ -95,6 +101,28 @@ public class Thundagun
 				}
 			});
 		}
+
+		Task.Run(async () => 
+		{ 
+			while (true)
+			{
+				if (packets.Count > 0)
+				{
+					Queue<IUpdatePacket> copy;
+					lock (packets)
+					{
+						copy = new Queue<IUpdatePacket>(packets);
+						packets.Clear();
+					}
+					while (copy.Count > 0)
+					{
+						var packet = copy.Dequeue();
+						bw.Write(packet.Name);
+						packet.Serialize(bw);
+					}
+				}
+			}
+		});
 
 		//Task.Run(async () =>
 		//{

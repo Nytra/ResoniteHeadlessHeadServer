@@ -17,8 +17,8 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 		RefID = Owner.ReferenceID.Position;
 		ParentConnector = Owner.Parent?.Connector as SlotConnector;
 		WorldId = Owner.World.LocalWorldHandle;
-		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
-		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
+		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
+		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void ApplyChanges()

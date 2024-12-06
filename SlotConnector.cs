@@ -57,6 +57,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool Reparent;
 	public string SlotName;
 	public long WorldId;
+	public World World;
 
 	public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
 	{
@@ -81,6 +82,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		}
 		SlotName = o.Name;
 		WorldId = owner.WorldId;
+		World = owner.World;
 	}
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
@@ -106,6 +108,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		}
 		SlotName = o.Name;
 		WorldId = owner.WorldId;
+		World = owner.World;
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -138,7 +141,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		bw.Write(Reparent);
 
-		bw.Write(SlotName);
+		bw.Write(SlotName ?? "NULL");
 
 		bw.Write(WorldId);
 	}
@@ -190,12 +193,14 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 	public ulong RefID;
 	public bool DestroyingWorld;
 	public long WorldId;
+	public World World;
 
 	public DestroySlotConnector(SlotConnector owner, bool destroyingWorld) : base(owner)
 	{
 		RefID = owner.RefID;
 		DestroyingWorld = destroyingWorld;
 		WorldId = owner.WorldId;
+		World = owner.World;
 	}
 
 	public override void Serialize(BinaryWriter bw)

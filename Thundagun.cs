@@ -1,6 +1,7 @@
 ﻿using Elements.Core;
 using System.IO.Pipes;
 using System.Diagnostics;
+using FrooxEngine;
 
 namespace Thundagun;
 
@@ -10,14 +11,35 @@ public class Thundagun
 	private static NamedPipeServerStream pipeServer;
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
+	//private static Queue<IUpdatePacket> packets = new();
+	//private static Thingy thingy = new();
+	//class Thingy
+	//{
+		//public bool locked = false;
+	//}
+	//private static bool lockTaken = false;
 	public static void QueuePacket(IUpdatePacket packet)
 	{
-		UniLog.Log(packet.ToString());
+		//UniLog.Log(packet.ToString());
 		if (pipeServer.IsConnected)
 		{
 			bw.Write(packet.Name);
 			packet.Serialize(bw);
-			//bw.Flush();
+			//Thread.Sleep(1);
+			//packets.Enqueue(packet);
+			//if (packets.Count == 1)
+			//{
+			//	World w = packet.World ?? Engine.Current.WorldManager.FocusedWorld;
+			//	w.RunSynchronously(() =>
+			//	{
+			//		while (packets.Count > 0)
+			//		{
+			//			var packet2 = packets.Dequeue();
+			//			bw.Write(packet2.Name);
+			//			packet2.Serialize(bw);
+			//		}
+			//	});
+			//}
 		}
 	}
 	public static void Setup(string[] args)
@@ -73,12 +95,52 @@ public class Thundagun
 				}
 			});
 		}
+
+		//Task.Run(async () =>
+		//{
+		//	while (true)
+		//	{
+		//		if (packets.Count > 0)
+		//		{
+		//			lock(thingy)
+		//				thingy.locked = true;
+
+		//			await Task.Delay(100);
+
+		//			Queue<IUpdatePacket> copy = null;
+
+		//			lock (packets)
+		//			{
+		//				copy = new Queue<IUpdatePacket>(packets);
+		//				packets.Clear();
+		//			}
+					
+		//			if (copy != null)
+		//			{
+		//				while (copy.Count > 0)
+		//				{
+		//					var packet = copy.Dequeue();
+		//					bw.Write(packet.Name);
+		//					packet.Serialize(bw);
+		//				}
+		//			}
+		//		}
+
+		//		Thread.Sleep(1000);
+
+		//		lock (thingy)
+		//			thingy.locked = false;
+
+		//		await Task.Delay(1);
+		//	}
+		//});
 	}
 }
 
 public abstract class UpdatePacket<T> : IUpdatePacket
 {
 	public string Name => GetType().Name;
+	public World World { get; set; }
 	public T Owner;
 	public UpdatePacket(T owner)
 	{
@@ -91,6 +153,7 @@ public abstract class UpdatePacket<T> : IUpdatePacket
 public interface IUpdatePacket
 {
 	public string Name { get; }
+	public World World { get; set; }
 	public void Serialize(BinaryWriter bw);
 	public void Deserialize(BinaryReader bw);
 }

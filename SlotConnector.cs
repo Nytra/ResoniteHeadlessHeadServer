@@ -9,17 +9,22 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 	public ulong RefID;
 	public SlotConnector ParentConnector;
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
+	public long WorldId;
 
 	public override void Initialize()
 	{
 		UniLog.Log("Slot connector initialize");
 		RefID = Owner.ReferenceID.Position;
 		ParentConnector = Owner.Parent?.Connector as SlotConnector;
-		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
+		WorldId = Owner.World.LocalWorldHandle;
+		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
+		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void ApplyChanges()
 	{
+		RefID = Owner.ReferenceID.Position;
+		WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
@@ -50,6 +55,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool HasParent;
 	public bool IsRootSlot;
 	public bool Reparent;
+	public string SlotName;
+	public long WorldId;
 
 	public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
 	{
@@ -72,6 +79,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			owner.ParentConnector = parent?.Connector as SlotConnector;
 			Reparent = true;
 		}
+		SlotName = o.Name;
+		WorldId = owner.Owner.World.LocalWorldHandle;
 	}
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
@@ -92,8 +101,11 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		IsRootSlot = o.IsRootSlot;
 		if (parent?.Connector != owner.ParentConnector && parent != null)
 		{
+			owner.ParentConnector = parent?.Connector as SlotConnector;
 			Reparent = true;
 		}
+		SlotName = o.Name;
+		WorldId = owner.Owner.World.LocalWorldHandle;
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -125,6 +137,10 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		bw.Write(IsRootSlot);
 
 		bw.Write(Reparent);
+
+		bw.Write(SlotName);
+
+		bw.Write(WorldId);
 	}
 	public override void Deserialize(BinaryReader br)
 	{
@@ -158,10 +174,14 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		IsRootSlot = br.ReadBoolean();
 
 		Reparent = br.ReadBoolean();
+
+		SlotName = br.ReadString();
+
+		WorldId = br.ReadInt64();
 	}
 	public override string ToString()
 	{
-		return $"ApplyChangesSlotConnector: {Active} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot}";
+		return $"ApplyChangesSlotConnector: {Active} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId}";
 	}
 }
 
@@ -169,22 +189,26 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 {
 	public ulong RefID;
 	public bool DestroyingWorld;
+	public long WorldId;
 
 	public DestroySlotConnector(SlotConnector owner, bool destroyingWorld) : base(owner)
 	{
 		RefID = owner.RefID;
 		DestroyingWorld = destroyingWorld;
+		//WorldId = owner.Owner.World.LocalWorldHandle;
 	}
 
 	public override void Serialize(BinaryWriter bw)
 	{
 		bw.Write(RefID);
 		bw.Write(DestroyingWorld);
+		bw.Write(WorldId);
 	}
 	public override void Deserialize(BinaryReader br)
 	{
 		RefID = br.ReadUInt64();
 		DestroyingWorld = br.ReadBoolean();
+		WorldId = br.ReadInt64();
 	}
 	public override string ToString()
 	{

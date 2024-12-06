@@ -21,7 +21,7 @@ public class Thundagun
 	{
 		UniLog.Log("Start of Setup!");
 
-		string pipeName = "MyNamedPipe";
+		string pipeName = "ResoniteHeadlessHead";
 
 		// Create a NamedPipeServerStream
 		pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.Out);
@@ -35,7 +35,7 @@ public class Thundagun
 		childProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
 
 		// Start the child process
-		childProcess.Start();
+		//childProcess.Start();
 
 		Console.WriteLine("Parent: Waiting for the child to connect...");
 

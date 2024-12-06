@@ -10,6 +10,7 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 	public SlotConnector ParentConnector;
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
 	public long WorldId;
+	//public byte ForceLayer; // not needed yet
 
 	public override void Initialize()
 	{
@@ -17,8 +18,8 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 		RefID = Owner.ReferenceID.Position;
 		ParentConnector = Owner.Parent?.Connector as SlotConnector;
 		WorldId = Owner.World.LocalWorldHandle;
-		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
-		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
+		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
+		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void ApplyChanges()
@@ -57,7 +58,6 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool Reparent;
 	public string SlotName;
 	public long WorldId;
-	public World World;
 
 	public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
 	{
@@ -82,7 +82,6 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		}
 		SlotName = o.Name;
 		WorldId = owner.WorldId;
-		World = owner.World;
 	}
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
@@ -106,9 +105,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			owner.ParentConnector = parent?.Connector as SlotConnector;
 			Reparent = true;
 		}
-		SlotName = o.Name;
+		SlotName = o.Name ?? "NULL";
 		WorldId = owner.WorldId;
-		World = owner.World;
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -141,7 +139,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		bw.Write(Reparent);
 
-		bw.Write(SlotName ?? "NULL");
+		bw.Write(SlotName);
 
 		bw.Write(WorldId);
 	}
@@ -193,14 +191,12 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 	public ulong RefID;
 	public bool DestroyingWorld;
 	public long WorldId;
-	public World World;
 
 	public DestroySlotConnector(SlotConnector owner, bool destroyingWorld) : base(owner)
 	{
 		RefID = owner.RefID;
 		DestroyingWorld = destroyingWorld;
 		WorldId = owner.WorldId;
-		World = owner.World;
 	}
 
 	public override void Serialize(BinaryWriter bw)

@@ -36,13 +36,11 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 {
 	//public WorldManagerConnector connector;
 	public long WorldId;
-	public World World;
 
 	public InitializeWorldConnector(WorldConnector owner) : base(owner)
 	{
 		//connector = owner.Owner.WorldManager.Connector as WorldManagerConnector;
 		WorldId = owner.WorldId;
-		World = owner.Owner;
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -63,13 +61,11 @@ public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 {
 	public int Focus;
 	public long WorldId;
-	public World World;
 
 	public ChangeFocusWorldConnector(WorldConnector owner, World.WorldFocus focus) : base(owner)
 	{
 		Focus = (int)focus;
 		WorldId = owner.WorldId;
-		World = owner.Owner;
 	}
 
 	public override void Serialize(BinaryWriter bw)
@@ -91,11 +87,9 @@ public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 public class DestroyWorldConnector : UpdatePacket<WorldConnector>
 {
 	public long WorldId;
-	public World World;
 	public DestroyWorldConnector(WorldConnector owner) : base(owner)
 	{
 		WorldId = owner.WorldId;
-		World = owner.Owner;
 	}
 
 	public override void Serialize(BinaryWriter bw)

@@ -168,7 +168,6 @@ public class Thundagun
 public abstract class UpdatePacket<T> : IUpdatePacket
 {
 	public string Name => GetType().Name;
-	public World World { get; set; }
 	public T Owner;
 	public UpdatePacket(T owner)
 	{
@@ -181,7 +180,6 @@ public abstract class UpdatePacket<T> : IUpdatePacket
 public interface IUpdatePacket
 {
 	public string Name { get; }
-	public World World { get; set; }
 	public void Serialize(BinaryWriter bw);
 	public void Deserialize(BinaryReader bw);
 }

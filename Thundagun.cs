@@ -82,8 +82,14 @@ public class Thundagun
 
 		//pipeServer.WaitForConnection();
 
-		buffer = new CircularBuffer("MyBuffer", 1024, 1025);
-		var syncBuffer = new BufferReadWrite("SyncBuffer", 1024);
+		buffer = new CircularBuffer("MyBuffer3", 1024, 1025);
+		var syncBuffer = new BufferReadWrite("SyncBuffer3", 1024);
+
+		Engine.Current.OnShutdown += () => 
+		{ 
+			buffer.Close();
+			syncBuffer.Close();
+		};
 
 		//bw = new BinaryWriter();
 

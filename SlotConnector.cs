@@ -1,13 +1,14 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
+using System.Text;
 
 namespace Thundagun.NewConnectors;
 
 public class SlotConnector : Connector<Slot>, ISlotConnector
 {
 	public ulong RefID;
-	public SlotConnector ParentConnector;
+	//public SlotConnector ParentConnector;
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
 	public long WorldId;
 	//public byte ForceLayer; // not needed yet
@@ -16,16 +17,16 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 	{
 		//UniLog.Log("Slot connector initialize");
 		RefID = Owner.ReferenceID.Position;
-		ParentConnector = Owner.Parent?.Connector as SlotConnector;
+		//ParentConnector = Owner.Parent?.Connector as SlotConnector;
 		WorldId = Owner.World.LocalWorldHandle;
-		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
-		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
+		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
+		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void ApplyChanges()
 	{
-		//RefID = Owner.ReferenceID.Position;
-		//WorldId = Owner.World.LocalWorldHandle;
+		RefID = Owner.ReferenceID.Position;
+		WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
@@ -58,33 +59,33 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool HasParent;
 	public bool IsRootSlot;
 	public bool Reparent;
-	//public string SlotName;
+	public string SlotName;
 	public long WorldId;
 
-	public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
-	{
-		var o = owner.Owner;
-		var parent = o.Parent;
-		Active = o.ActiveSelf;
-		ActiveChanged = o.ActiveSelf_Field.GetWasChangedAndClear();
-		Position = o.Position_Field.Value;
-		PositionChanged = o.Position_Field.GetWasChangedAndClear();
-		Rotation = o.Rotation_Field.Value;
-		RotationChanged = o.Rotation_Field.GetWasChangedAndClear();
-		Scale = o.Scale_Field.Value;
-		ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
-		RefId = owner.RefID;
-		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
-		HasParent = parent != null;
-		IsRootSlot = o.IsRootSlot;
-		if ((parent?.Connector != owner.ParentConnector && parent != null) || forceReparent)
-		{
-			owner.ParentConnector = parent?.Connector as SlotConnector;
-			Reparent = true;
-		}
-		//SlotName = o.Name;
-		WorldId = owner.WorldId;
-	}
+	//public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
+	//{
+	//	var o = owner.Owner;
+	//	var parent = o.Parent;
+	//	Active = o.ActiveSelf;
+	//	ActiveChanged = o.ActiveSelf_Field.GetWasChangedAndClear();
+	//	Position = o.Position_Field.Value;
+	//	PositionChanged = o.Position_Field.GetWasChangedAndClear();
+	//	Rotation = o.Rotation_Field.Value;
+	//	RotationChanged = o.Rotation_Field.GetWasChangedAndClear();
+	//	Scale = o.Scale_Field.Value;
+	//	ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
+	//	RefId = owner.RefID;
+	//	ParentRefId = o.Parent?.ReferenceID.Position ?? default;
+	//	HasParent = parent != null;
+	//	IsRootSlot = o.IsRootSlot;
+	//	//if ((parent?.Connector != owner.ParentConnector && parent != null) || forceReparent)
+	//	//{
+	//		//owner.ParentConnector = parent?.Connector as SlotConnector;
+	//		//Reparent = true;
+	//	//}
+	//	SlotName = o.Name ?? "NULL";
+	//	WorldId = owner.WorldId;
+	//}
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
 	{
@@ -102,12 +103,12 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
 		HasParent = parent != null;
 		IsRootSlot = o.IsRootSlot;
-		if (parent?.Connector != owner.ParentConnector && parent != null)
-		{
-			owner.ParentConnector = parent?.Connector as SlotConnector;
-			Reparent = true;
-		}
-		//SlotName = o.Name ?? "NULL";
+		//if (parent?.Connector != owner.ParentConnector && parent != null)
+		//{
+			//owner.ParentConnector = parent?.Connector as SlotConnector;
+			//Reparent = true;
+		//}
+		SlotName = o.Name ?? "NULL";
 		WorldId = owner.WorldId;
 	}
 
@@ -152,7 +153,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Write(ref Reparent);
 
-		//buffer.Write(ref SlotName);
+		buffer.Write(Encoding.UTF8.GetBytes(SlotName));
 
 		buffer.Write(ref WorldId);
 	}
@@ -194,6 +195,9 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Read(out Reparent);
 
 		//SlotName = br.ReadString();
+		var bytes = new byte[256];
+		buffer.Read(bytes);
+		SlotName = Encoding.UTF8.GetString(bytes);
 
 		buffer.Read(out WorldId);
 	}

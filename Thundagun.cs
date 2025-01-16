@@ -2,13 +2,19 @@
 using System.IO.Pipes;
 using System.Diagnostics;
 using FrooxEngine;
+using SharedMemory;
+using Thundagun.NewConnectors;
+using System.Text;
+using System.Runtime.InteropServices;
 
 namespace Thundagun;
 
 public class Thundagun
 {
-	private static BinaryWriter bw;
-	private static NamedPipeServerStream pipeServer;
+	//private static BinaryWriter bw;
+	//private static NamedPipeServerStream pipeServer;
+	//private static BufferReadWrite buffer;
+	private static CircularBuffer buffer;
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<IUpdatePacket> packets = new();
@@ -21,7 +27,7 @@ public class Thundagun
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		//UniLog.Log(packet.ToString());
-		if (pipeServer.IsConnected)
+		if (buffer != null)
 		{
 			lock (packets)
 			{
@@ -55,7 +61,7 @@ public class Thundagun
 		string pipeName = "ResoniteHeadlessHead";
 
 		// Create a NamedPipeServerStream
-		pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.Out);
+		//pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.Out);
 
 		if (START_CHILD_PROCESS)
 		{
@@ -74,13 +80,22 @@ public class Thundagun
 
 		Console.WriteLine("Parent: Waiting for the client to connect...");
 
-		pipeServer.WaitForConnection();
+		//pipeServer.WaitForConnection();
 
-		bw = new BinaryWriter(pipeServer);
+		buffer = new CircularBuffer("MyBuffer", 1024, 1025);
+		var syncBuffer = new BufferReadWrite("SyncBuffer", 1024);
 
-		// Send a 'sync message' and wait for client to receive it.
-		bw.Write("SYNC");
-		pipeServer.WaitForPipeDrain();
+		//bw = new BinaryWriter();
+
+		// Send a 'sync message'.
+		int num = 999;
+		syncBuffer.Write(ref num);
+
+		do
+		{
+			buffer.Read(out num);
+		}
+		while (num != 999);
 
 		UniLog.OnLog += (string str) =>
 		{
@@ -117,8 +132,9 @@ public class Thundagun
 					while (copy.Count > 0)
 					{
 						var packet = copy.Dequeue();
-						bw.Write(packet.Name);
-						packet.Serialize(bw);
+						var num = packet.Id;
+						buffer.Write(ref num);
+						packet.Serialize(buffer);
 					}
 				}
 			}
@@ -167,19 +183,29 @@ public class Thundagun
 
 public abstract class UpdatePacket<T> : IUpdatePacket
 {
-	public string Name => GetType().Name;
+	public abstract int Id { get; }
 	public T Owner;
 	public UpdatePacket(T owner)
 	{
 		Owner = owner;
 	}
-	public abstract void Serialize(BinaryWriter bw);
-	public abstract void Deserialize(BinaryReader bw);
+	public abstract void Serialize(CircularBuffer buffer);
+	public abstract void Deserialize(CircularBuffer buffer);
 }
 
 public interface IUpdatePacket
 {
-	public string Name { get; }
-	public void Serialize(BinaryWriter bw);
-	public void Deserialize(BinaryReader bw);
+	public int Id { get; }
+	public void Serialize(CircularBuffer buffer);
+	public void Deserialize(CircularBuffer buffer);
+}
+
+public enum PacketTypes
+{
+	Sync,
+	ApplyChangesSlot,
+	DestroySlot,
+	InitializeWorld,
+	ChangeFocusWorld,
+	DestroyWorld
 }

@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using SharedMemory;
 using UnityEngine;
 
 namespace Thundagun.NewConnectors;
@@ -43,6 +44,8 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 
 public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 {
+	public override int Id => (int)PacketTypes.ApplyChangesSlot;
+
 	public bool Active;
 	public bool ActiveChanged;
 	public Vector3 Position;
@@ -109,76 +112,79 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(BinaryWriter bw)
+	public override void Serialize(CircularBuffer buffer)
 	{
-		bw.Write(Active);
-		bw.Write(ActiveChanged);
+		buffer.Write(ref Active);
+		buffer.Write(ref ActiveChanged);
 
-		bw.Write(Position.x);
-		bw.Write(Position.y);
-		bw.Write(Position.z);
-		bw.Write(PositionChanged);
+		buffer.Write(ref Position.x);
+		buffer.Write(ref Position.y);
+		buffer.Write(ref Position.z);
+		buffer.Write(ref PositionChanged);
 
-		bw.Write(Rotation.x);
-		bw.Write(Rotation.y);
-		bw.Write(Rotation.z);
-		bw.Write(RotationChanged);
+		buffer.Write(ref Rotation.x);
+		buffer.Write(ref Rotation.y);
+		buffer.Write(ref Rotation.z);
+		buffer.Write(ref RotationChanged);
 
-		bw.Write(Scale.x);
-		bw.Write(Scale.y);
-		bw.Write(Scale.z);
-		bw.Write(ScaleChanged);
+		buffer.Write(ref Scale.x);
+		buffer.Write(ref Scale.y);
+		buffer.Write(ref Scale.z);
+		buffer.Write(ref ScaleChanged);
 
-		bw.Write(RefId);
+		buffer.Write(ref RefId);
 
-		bw.Write(ParentRefId);
+		buffer.Write(ref ParentRefId);
 
-		bw.Write(HasParent);
+		buffer.Write(ref HasParent);
 
-		bw.Write(IsRootSlot);
+		buffer.Write(ref IsRootSlot);
 
-		bw.Write(Reparent);
+		buffer.Write(ref Reparent);
 
-		bw.Write(SlotName);
+		//buffer.Write(ref SlotName);
 
-		bw.Write(WorldId);
+		buffer.Write(ref WorldId);
 	}
-	public override void Deserialize(BinaryReader br)
+	public override void Deserialize(CircularBuffer buffer)
 	{
-		Active = br.ReadBoolean();
-		ActiveChanged = br.ReadBoolean();
+		buffer.Read(out Active);
+		buffer.Read(out ActiveChanged);
 
-		float px = br.ReadSingle();
-		float py = br.ReadSingle();
-		float pz = br.ReadSingle();
+		float px, py, pz;
+		buffer.Read(out px);
+		buffer.Read(out py);
+		buffer.Read(out pz);
 		Position = new Vector3(px, py, pz);
-		PositionChanged = br.ReadBoolean();
+		buffer.Read(out PositionChanged);
 
-		float rx = br.ReadSingle();
-		float ry = br.ReadSingle();
-		float yz = br.ReadSingle();
-		Rotation = new Vector3(rx, ry, yz);
-		RotationChanged = br.ReadBoolean();
+		float rx, ry, rz;
+		buffer.Read(out rx);
+		buffer.Read(out ry);
+		buffer.Read(out rz);
+		Rotation = new Vector3(rx, ry, rz);
+		buffer.Read(out RotationChanged);
 
-		float sx = br.ReadSingle();
-		float sy = br.ReadSingle();
-		float sz = br.ReadSingle();
+		float sx, sy, sz;
+		buffer.Read(out sx);
+		buffer.Read(out sy);
+		buffer.Read(out sz);
 		Scale = new Vector3(sx, sy, sz);
-		ScaleChanged = br.ReadBoolean();
+		buffer.Read(out ScaleChanged);
 
-		RefId = br.ReadUInt64();
+		buffer.Read(out RefId);
 
-		ParentRefId = br.ReadUInt64();
+		buffer.Read(out ParentRefId);
 
-		HasParent = br.ReadBoolean();
+		buffer.Read(out HasParent);
 
-		IsRootSlot = br.ReadBoolean();
+		buffer.Read(out IsRootSlot);
 
-		Reparent = br.ReadBoolean();
+		buffer.Read(out Reparent);
 
-		SlotName = br.ReadString();
+		//SlotName = br.ReadString();
 
-		WorldId = br.ReadInt64();
+		buffer.Read(out WorldId);
 	}
 	public override string ToString()
 	{
@@ -188,6 +194,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 public class DestroySlotConnector : UpdatePacket<SlotConnector>
 {
+	public override int Id => (int)PacketTypes.DestroySlot;
+
 	public ulong RefID;
 	public bool DestroyingWorld;
 	public long WorldId;
@@ -199,17 +207,17 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(BinaryWriter bw)
+	public override void Serialize(CircularBuffer buffer)
 	{
-		bw.Write(RefID);
-		bw.Write(DestroyingWorld);
-		bw.Write(WorldId);
+		buffer.Write(ref RefID);
+		buffer.Write(ref DestroyingWorld);
+		buffer.Write(ref WorldId);
 	}
-	public override void Deserialize(BinaryReader br)
+	public override void Deserialize(CircularBuffer buffer)
 	{
-		RefID = br.ReadUInt64();
-		DestroyingWorld = br.ReadBoolean();
-		WorldId = br.ReadInt64();
+		buffer.Read(out RefID);
+		buffer.Read(out DestroyingWorld);
+		buffer.Read(out WorldId);
 	}
 	public override string ToString()
 	{

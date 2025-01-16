@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using SharedMemory;
 using System.Runtime.Serialization;
 using UnityEngine;
 
@@ -34,6 +35,8 @@ public class WorldConnector : IWorldConnector
 
 public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 {
+	public override int Id => (int)PacketTypes.InitializeWorld;
+
 	//public WorldManagerConnector connector;
 	public long WorldId;
 
@@ -43,13 +46,13 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(BinaryWriter bw)
+	public override void Serialize(CircularBuffer buffer)
 	{
-		bw.Write(WorldId);
+		buffer.Write(ref WorldId);
 	}
-	public override void Deserialize(BinaryReader br)
+	public override void Deserialize(CircularBuffer buffer)
 	{
-		WorldId = br.ReadInt64();
+		buffer.Read(out WorldId);
 	}
 	public override string ToString()
 	{
@@ -59,6 +62,8 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 
 public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 {
+	public override int Id => (int)PacketTypes.ChangeFocusWorld;
+
 	public int Focus;
 	public long WorldId;
 
@@ -68,15 +73,15 @@ public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(BinaryWriter bw)
+	public override void Serialize(CircularBuffer buffer)
 	{
-		bw.Write(Focus);
-		bw.Write(WorldId);
+		buffer.Write(ref Focus);
+		buffer.Write(ref WorldId);
 	}
-	public override void Deserialize(BinaryReader br)
+	public override void Deserialize(CircularBuffer buffer)
 	{
-		Focus = br.ReadInt32();
-		WorldId = br.ReadInt64();
+		buffer.Read(out Focus);
+		buffer.Read(out WorldId);
 	}
 	public override string ToString()
 	{
@@ -86,19 +91,21 @@ public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 
 public class DestroyWorldConnector : UpdatePacket<WorldConnector>
 {
+	public override int Id => (int)PacketTypes.DestroyWorld;
+
 	public long WorldId;
 	public DestroyWorldConnector(WorldConnector owner) : base(owner)
 	{
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(BinaryWriter bw)
+	public override void Serialize(CircularBuffer buffer)
 	{
-		bw.Write(WorldId);
+		buffer.Write(ref WorldId);
 	}
-	public override void Deserialize(BinaryReader br)
+	public override void Deserialize(CircularBuffer buffer)
 	{
-		WorldId = br.ReadInt64();
+		buffer.Read(out WorldId);
 	}
 	public override string ToString()
 	{

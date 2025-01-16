@@ -2,7 +2,6 @@
 using FrooxEngine;
 using SharedMemory;
 using System.Runtime.Serialization;
-using UnityEngine;
 
 namespace Thundagun.NewConnectors;
 

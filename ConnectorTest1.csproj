@@ -18,9 +18,6 @@
     <Reference Include="SharedMemory">
       <HintPath>..\..\..\Documents\Code\Cloned Repos\SharedMemory\bin\Debug\net9\SharedMemory.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>G:\SteamLibrary\steamapps\common\Resonite\Headless\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
   </ItemGroup>
   
   <Target Name="CustomCopy" AfterTargets="PostBuildEvent">

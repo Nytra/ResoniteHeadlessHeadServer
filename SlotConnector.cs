@@ -1,7 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
-using UnityEngine;
 
 namespace Thundagun.NewConnectors;
 
@@ -48,18 +47,18 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 	public bool Active;
 	public bool ActiveChanged;
-	public Vector3 Position;
+	public float3 Position;
 	public bool PositionChanged;
-	public Vector3 Rotation;
+	public floatQ Rotation;
 	public bool RotationChanged;
-	public Vector3 Scale;
+	public float3 Scale;
 	public bool ScaleChanged;
 	public ulong RefId;
 	public ulong ParentRefId;
 	public bool HasParent;
 	public bool IsRootSlot;
 	public bool Reparent;
-	public string SlotName;
+	//public string SlotName;
 	public long WorldId;
 
 	public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
@@ -68,11 +67,11 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		var parent = o.Parent;
 		Active = o.ActiveSelf;
 		ActiveChanged = o.ActiveSelf_Field.GetWasChangedAndClear();
-		Position = o.Position_Field.Value.ToUnity();
+		Position = o.Position_Field.Value;
 		PositionChanged = o.Position_Field.GetWasChangedAndClear();
-		Rotation = o.Rotation_Field.Value.EulerAngles.ToUnity();
+		Rotation = o.Rotation_Field.Value;
 		RotationChanged = o.Rotation_Field.GetWasChangedAndClear();
-		Scale = o.Scale_Field.Value.ToUnity();
+		Scale = o.Scale_Field.Value;
 		ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
 		RefId = owner.RefID;
 		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
@@ -83,7 +82,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			owner.ParentConnector = parent?.Connector as SlotConnector;
 			Reparent = true;
 		}
-		SlotName = o.Name;
+		//SlotName = o.Name;
 		WorldId = owner.WorldId;
 	}
 
@@ -93,11 +92,11 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		var parent = o.Parent;
 		Active = o.ActiveSelf;
 		ActiveChanged = o.ActiveSelf_Field.GetWasChangedAndClear();
-		Position = o.Position_Field.Value.ToUnity();
+		Position = o.Position_Field.Value;
 		PositionChanged = o.Position_Field.GetWasChangedAndClear();
-		Rotation = o.Rotation_Field.Value.EulerAngles.ToUnity();
+		Rotation = o.Rotation_Field.Value;
 		RotationChanged = o.Rotation_Field.GetWasChangedAndClear();
-		Scale = o.Scale_Field.Value.ToUnity();
+		Scale = o.Scale_Field.Value;
 		ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
 		RefId = owner.RefID;
 		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
@@ -108,7 +107,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			owner.ParentConnector = parent?.Connector as SlotConnector;
 			Reparent = true;
 		}
-		SlotName = o.Name ?? "NULL";
+		//SlotName = o.Name ?? "NULL";
 		WorldId = owner.WorldId;
 	}
 
@@ -117,19 +116,30 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Write(ref Active);
 		buffer.Write(ref ActiveChanged);
 
-		buffer.Write(ref Position.x);
-		buffer.Write(ref Position.y);
-		buffer.Write(ref Position.z);
+		float px = Position.x;
+		float py = Position.y;
+		float pz = Position.z;
+		buffer.Write(ref px);
+		buffer.Write(ref py);
+		buffer.Write(ref pz);
 		buffer.Write(ref PositionChanged);
 
-		buffer.Write(ref Rotation.x);
-		buffer.Write(ref Rotation.y);
-		buffer.Write(ref Rotation.z);
+		float rx = Rotation.x;
+		float ry = Rotation.y;
+		float rz = Rotation.z;
+		float rw = Rotation.w;
+		buffer.Write(ref rx);
+		buffer.Write(ref ry);
+		buffer.Write(ref rz);
+		buffer.Write(ref rw);
 		buffer.Write(ref RotationChanged);
 
-		buffer.Write(ref Scale.x);
-		buffer.Write(ref Scale.y);
-		buffer.Write(ref Scale.z);
+		float sx = Scale.x;
+		float sy = Scale.y;
+		float sz = Scale.z;
+		buffer.Write(ref sx);
+		buffer.Write(ref sy);
+		buffer.Write(ref sz);
 		buffer.Write(ref ScaleChanged);
 
 		buffer.Write(ref RefId);
@@ -155,21 +165,22 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Read(out px);
 		buffer.Read(out py);
 		buffer.Read(out pz);
-		Position = new Vector3(px, py, pz);
+		Position = new float3(px, py, pz);
 		buffer.Read(out PositionChanged);
 
-		float rx, ry, rz;
+		float rx, ry, rz, rw;
 		buffer.Read(out rx);
 		buffer.Read(out ry);
 		buffer.Read(out rz);
-		Rotation = new Vector3(rx, ry, rz);
+		buffer.Read(out rw);
+		Rotation = new floatQ(rx, ry, rz, rw);
 		buffer.Read(out RotationChanged);
 
 		float sx, sy, sz;
 		buffer.Read(out sx);
 		buffer.Read(out sy);
 		buffer.Read(out sz);
-		Scale = new Vector3(sx, sy, sz);
+		Scale = new float3(sx, sy, sz);
 		buffer.Read(out ScaleChanged);
 
 		buffer.Read(out RefId);
@@ -188,7 +199,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	}
 	public override string ToString()
 	{
-		return $"ApplyChangesSlotConnector: {Active} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId}";
+		return $"ApplyChangesSlotConnector: {Active} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {WorldId}";
 	}
 }
 

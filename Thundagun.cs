@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using FrooxEngine;
 using SharedMemory;
+using Thundagun.NewConnectors;
 
 namespace Thundagun;
 
@@ -14,6 +15,10 @@ public class Thundagun
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		//UniLog.Log(packet.ToString());
+		//if (packet is ApplyChangesSlotConnector applyChangesSlot)
+		//{
+		//	if (!applyChangesSlot.ShouldRender && !applyChangesSlot.IsRootSlot) return;
+		//}
 		lock (packets)
 		{
 			packets.Enqueue(packet);
@@ -38,32 +43,39 @@ public class Thundagun
 			childProcess.Start();
 		}
 
-		Console.WriteLine("Server: Creating buffer...");
+		Console.WriteLine("Server: Creating buffers...");
 
-		buffer = new CircularBuffer("MyBuffer4", 1024, 1025);
-		var syncBuffer = new BufferReadWrite("SyncBuffer4", 1024);
+		var rand = new Random();
+		int num2 = rand.Next();
 
-		Console.WriteLine("Server: Buffer created.");
+		Console.WriteLine($"Server: Opening main buffer with id {num2}.");
+
+		buffer = new CircularBuffer($"MyBuffer{num2}", 1024, 32);
+		var syncBuffer = new BufferReadWrite($"SyncBuffer", 1024);
+
+		Console.WriteLine("Server: Buffers created.");
 
 		Engine.Current.OnShutdown += () => 
 		{ 
 			buffer.Close();
-			syncBuffer.Close();
 		};
 
 		Console.WriteLine("Server: Waiting for the client to connect...");
 
 		// Send a 'sync message'
-		int num = 999;
-		syncBuffer.Write(ref num);
+		
+		int num;
+		syncBuffer.Write(ref num2);
 
 		do
 		{
 			buffer.Read(out num);
 		}
-		while (num != 999);
+		while (num != num2);
 
 		Console.WriteLine("Server: Client connected.");
+
+		syncBuffer.Close();
 
 		UniLog.OnLog += (string str) =>
 		{

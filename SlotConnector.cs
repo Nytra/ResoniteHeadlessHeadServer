@@ -8,7 +8,6 @@ namespace Thundagun.NewConnectors;
 public class SlotConnector : Connector<Slot>, ISlotConnector
 {
 	public ulong RefID;
-	//public SlotConnector ParentConnector;
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
 	public long WorldId;
 	//public byte ForceLayer; // not needed yet
@@ -59,8 +58,9 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool Reparent;
 	public string SlotName;
 	public long WorldId;
-	public bool IsUser;
+	public bool IsUserRootSlot;
 	public bool HasActiveUser;
+	public bool ShouldRender;
 
 	//public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
 	//{
@@ -110,8 +110,19 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		//}
 		SlotName = o.Name ?? "NULL";
 		WorldId = owner.WorldId;
-		IsUser = o.GetComponent<UserRoot>() != null;
+		IsUserRootSlot = o.ActiveUserRoot?.Slot == o;
 		HasActiveUser = o.ActiveUser != null;
+		ShouldRender = o.GetComponent<MeshRenderer>() != null;
+		if (!ShouldRender)
+		{
+			if (o.GetComponentInParents<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
+			{
+				if (skinned.Bones.Contains(o))
+				{
+					ShouldRender = true;
+				}
+			}
+		}
 	}
 
 	public override void Serialize(CircularBuffer buffer)
@@ -159,9 +170,11 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Write(ref WorldId);
 
-		buffer.Write(ref IsUser);
+		buffer.Write(ref IsUserRootSlot);
 
 		buffer.Write(ref HasActiveUser);
+
+		buffer.Write(ref ShouldRender);
 	}
 	public override void Deserialize(CircularBuffer buffer)
 	{
@@ -200,19 +213,21 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Read(out Reparent);
 
-		var bytes = new byte[256];
+		var bytes = new byte[64];
 		buffer.Read(bytes);
 		SlotName = Encoding.UTF8.GetString(bytes);
 
 		buffer.Read(out WorldId);
 
-		buffer.Read(out IsUser);
+		buffer.Read(out IsUserRootSlot);
 
 		buffer.Read(out HasActiveUser);
+
+		buffer.Read(out ShouldRender);
 	}
 	public override string ToString()
 	{
-		return $"ApplyChangesSlotConnector: {Active} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {WorldId}";
+		return $"ApplyChangesSlotConnector: {Active} {ActiveChanged} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId} {IsUserRootSlot} {HasActiveUser} {ShouldRender}";
 	}
 }
 

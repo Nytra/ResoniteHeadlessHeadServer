@@ -1,76 +1,36 @@
 ﻿using Elements.Core;
-using System.IO.Pipes;
 using System.Diagnostics;
 using FrooxEngine;
 using SharedMemory;
-using Thundagun.NewConnectors;
-using System.Text;
-using System.Runtime.InteropServices;
 
 namespace Thundagun;
 
 public class Thundagun
 {
-	//private static BinaryWriter bw;
-	//private static NamedPipeServerStream pipeServer;
-	//private static BufferReadWrite buffer;
 	private static CircularBuffer buffer;
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<IUpdatePacket> packets = new();
-	//private static Thingy thingy = new();
-	//class Thingy
-	//{
-		//public bool locked = false;
-	//}
-	//private static bool lockTaken = false;
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		//UniLog.Log(packet.ToString());
-		if (buffer != null)
+		lock (packets)
 		{
-			lock (packets)
-			{
-				packets.Enqueue(packet);
-			}
-			//bw.Write(packet.Name);
-			//packet.Serialize(bw);
-
-
-			//Thread.Sleep(1);
-			//packets.Enqueue(packet);
-			//if (packets.Count == 1)
-			//{
-			//	World w = packet.World ?? Engine.Current.WorldManager.FocusedWorld;
-			//	w.RunSynchronously(() =>
-			//	{
-			//		while (packets.Count > 0)
-			//		{
-			//			var packet2 = packets.Dequeue();
-			//			bw.Write(packet2.Name);
-			//			packet2.Serialize(bw);
-			//		}
-			//	});
-			//}
+			packets.Enqueue(packet);
 		}
 	}
 	public static void Setup(string[] args)
 	{
-		UniLog.Log("Start of Setup!");
-
-		string pipeName = "ResoniteHeadlessHead";
-
-		// Create a NamedPipeServerStream
-		//pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.Out);
+		Console.WriteLine("Server: Start of setup.");
 
 		if (START_CHILD_PROCESS)
 		{
-			Console.WriteLine("Parent: Starting child process...");
+			Console.WriteLine("Server: Starting child process...");
 
 			// Configure the child process to start in a new window
 			childProcess = new Process();
 			childProcess.StartInfo.FileName = @"HeadlessLibraries\Client\ResoniteThundagunHeadless.exe"; // Adjust to the child executable path
-			childProcess.StartInfo.Arguments = $"{pipeName}";
+			childProcess.StartInfo.Arguments = $"";
 			childProcess.StartInfo.UseShellExecute = true; // Run in a new window
 			childProcess.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
 
@@ -78,12 +38,12 @@ public class Thundagun
 			childProcess.Start();
 		}
 
-		Console.WriteLine("Parent: Waiting for the client to connect...");
+		Console.WriteLine("Server: Creating buffer...");
 
-		//pipeServer.WaitForConnection();
+		buffer = new CircularBuffer("MyBuffer4", 1024, 1025);
+		var syncBuffer = new BufferReadWrite("SyncBuffer4", 1024);
 
-		buffer = new CircularBuffer("MyBuffer3", 1024, 1025);
-		var syncBuffer = new BufferReadWrite("SyncBuffer3", 1024);
+		Console.WriteLine("Server: Buffer created.");
 
 		Engine.Current.OnShutdown += () => 
 		{ 
@@ -91,9 +51,9 @@ public class Thundagun
 			syncBuffer.Close();
 		};
 
-		//bw = new BinaryWriter();
+		Console.WriteLine("Server: Waiting for the client to connect...");
 
-		// Send a 'sync message'.
+		// Send a 'sync message'
 		int num = 999;
 		syncBuffer.Write(ref num);
 
@@ -145,45 +105,6 @@ public class Thundagun
 				}
 			}
 		});
-
-		//Task.Run(async () =>
-		//{
-		//	while (true)
-		//	{
-		//		if (packets.Count > 0)
-		//		{
-		//			lock(thingy)
-		//				thingy.locked = true;
-
-		//			await Task.Delay(100);
-
-		//			Queue<IUpdatePacket> copy = null;
-
-		//			lock (packets)
-		//			{
-		//				copy = new Queue<IUpdatePacket>(packets);
-		//				packets.Clear();
-		//			}
-					
-		//			if (copy != null)
-		//			{
-		//				while (copy.Count > 0)
-		//				{
-		//					var packet = copy.Dequeue();
-		//					bw.Write(packet.Name);
-		//					packet.Serialize(bw);
-		//				}
-		//			}
-		//		}
-
-		//		Thread.Sleep(1000);
-
-		//		lock (thingy)
-		//			thingy.locked = false;
-
-		//		await Task.Delay(1);
-		//	}
-		//});
 	}
 }
 

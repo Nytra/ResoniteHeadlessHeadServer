@@ -15,7 +15,6 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 
 	public override void Initialize()
 	{
-		//UniLog.Log("Slot connector initialize");
 		RefID = Owner.ReferenceID.Position;
 		//ParentConnector = Owner.Parent?.Connector as SlotConnector;
 		WorldId = Owner.World.LocalWorldHandle;
@@ -25,14 +24,13 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 
 	public override void ApplyChanges()
 	{
-		RefID = Owner.ReferenceID.Position;
-		WorldId = Owner.World.LocalWorldHandle;
+		//RefID = Owner.ReferenceID.Position;
+		//WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void Destroy(bool destroyingWorld)
 	{
-		//UniLog.Log("Slot connector destroy");
 		Thundagun.QueuePacket(new DestroySlotConnector(this, destroyingWorld));
 	}
 
@@ -61,6 +59,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool Reparent;
 	public string SlotName;
 	public long WorldId;
+	public bool IsUser;
+	public bool HasActiveUser;
 
 	//public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
 	//{
@@ -110,6 +110,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		//}
 		SlotName = o.Name ?? "NULL";
 		WorldId = owner.WorldId;
+		IsUser = o.GetComponent<UserRoot>() != null;
+		HasActiveUser = o.ActiveUser != null;
 	}
 
 	public override void Serialize(CircularBuffer buffer)
@@ -156,6 +158,10 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Write(Encoding.UTF8.GetBytes(SlotName));
 
 		buffer.Write(ref WorldId);
+
+		buffer.Write(ref IsUser);
+
+		buffer.Write(ref HasActiveUser);
 	}
 	public override void Deserialize(CircularBuffer buffer)
 	{
@@ -194,12 +200,15 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Read(out Reparent);
 
-		//SlotName = br.ReadString();
 		var bytes = new byte[256];
 		buffer.Read(bytes);
 		SlotName = Encoding.UTF8.GetString(bytes);
 
 		buffer.Read(out WorldId);
+
+		buffer.Read(out IsUser);
+
+		buffer.Read(out HasActiveUser);
 	}
 	public override string ToString()
 	{

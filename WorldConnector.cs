@@ -14,20 +14,17 @@ public class WorldConnector : IWorldConnector
 	{
 		Owner = owner;
 		WorldId = owner.LocalWorldHandle;
-		//UniLog.Log("World connector initialize");
 		Thundagun.QueuePacket(new InitializeWorldConnector(this));
 	}
 
 	public void ChangeFocus(World.WorldFocus focus)
 	{
 		//WorldId = Owner.LocalWorldHandle;
-		//UniLog.Log("World connector change focus");
 		Thundagun.QueuePacket(new ChangeFocusWorldConnector(this, focus));
 	}
 
 	public void Destroy()
 	{
-		//UniLog.Log("World connector destroy");
 		Thundagun.QueuePacket(new DestroyWorldConnector(this));
 	}
 }

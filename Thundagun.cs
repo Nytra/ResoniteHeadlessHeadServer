@@ -63,6 +63,8 @@ public class Thundagun
 		}
 		while (num != 999);
 
+		Console.WriteLine("Server: Client connected.");
+
 		UniLog.OnLog += (string str) =>
 		{
 			//sw.WriteLine(str);
@@ -82,6 +84,8 @@ public class Thundagun
 				}
 			});
 		}
+
+		Console.WriteLine("Server: Starting packet loop.");
 
 		Task.Run(async () => 
 		{ 

@@ -13,6 +13,7 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
 	public long WorldId;
 	//public byte ForceLayer; // not needed yet
+	public bool ForceRender;
 
 	public override void Initialize()
 	{
@@ -63,6 +64,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool IsUserRootSlot;
 	public bool HasActiveUser;
 	public bool ShouldRender;
+	public bool ForceRender;
 
 	//public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
 	//{
@@ -105,17 +107,32 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
 		HasParent = parent != null;
 		IsRootSlot = o.IsRootSlot;
+
 		//if (parent?.Connector != owner.ParentConnector && parent != null)
 		//{
 			//owner.ParentConnector = parent?.Connector as SlotConnector;
 			//Reparent = true;
 		//}
+
 		SlotName = o.Name ?? "NULL";
 		WorldId = owner.WorldId;
 		IsUserRootSlot = o.ActiveUserRoot?.Slot == o;
 		HasActiveUser = o.ActiveUser != null;
 		ShouldRender = o.GetComponent<MeshRenderer>() != null || o.GetComponent<Canvas>() != null || o.GetComponent<ParticleSystem>() != null || o.GetComponent<LegacyParticleSystem>() != null; // also gets SkinnedMeshRenderer since it is inherited
-		
+		ForceRender = owner.ForceRender;
+
+		if (o.GetComponent<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
+		{
+			foreach (var bone in skinned.Bones)
+			{
+				var slotConn = bone.Connector as SlotConnector;
+				if (!slotConn.ForceRender)
+				{
+					slotConn.ForceRender = true;
+					Thundagun.QueuePacket(new ApplyChangesSlotConnector(slotConn));
+				}
+			}
+		}
 		// search for skinned mesh in parents, could be heavy?
 		//if (!ShouldRender)
 		//{
@@ -202,6 +219,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Write(ref HasActiveUser);
 
 		buffer.Write(ref ShouldRender);
+
+		buffer.Write(ref ForceRender);
 	}
 	public override void Deserialize(CircularBuffer buffer)
 	{
@@ -251,10 +270,12 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Read(out HasActiveUser);
 
 		buffer.Read(out ShouldRender);
+
+		buffer.Read(out ForceRender);
 	}
 	public override string ToString()
 	{
-		return $"ApplyChangesSlotConnector: {Active} {ActiveChanged} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId} {IsUserRootSlot} {HasActiveUser} {ShouldRender}";
+		return $"ApplyChangesSlotConnector: {Active} {ActiveChanged} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId} {IsUserRootSlot} {HasActiveUser} {ShouldRender} {ForceRender}";
 	}
 }
 

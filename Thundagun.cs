@@ -12,18 +12,23 @@ public class Thundagun
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<IUpdatePacket> packets = new();
+	//private static Queue<IUpdatePacket> latePackets = new();
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		//UniLog.Log(packet.ToString());
-		//if (packet is ApplyChangesSlotConnector applyChangesSlot)
-		//{
-		//	if (!applyChangesSlot.ShouldRender && !applyChangesSlot.IsRootSlot) return;
-		//}
 		lock (packets)
 		{
 			packets.Enqueue(packet);
 		}
 	}
+	//public static void QueueLatePacket(IUpdatePacket packet)
+	//{
+	//	//UniLog.Log(packet.ToString());
+	//	lock (latePackets)
+	//	{
+	//		latePackets.Enqueue(packet);
+	//	}
+	//}
 	public static void Setup(string[] args)
 	{
 		Console.WriteLine("Server: Start of setup.");
@@ -119,6 +124,22 @@ public class Thundagun
 						packet.Serialize(buffer);
 					}
 				}
+				//if (latePackets.Count > 0)
+				//{
+				//	Queue<IUpdatePacket> copy;
+				//	lock (latePackets)
+				//	{
+				//		copy = new Queue<IUpdatePacket>(latePackets);
+				//		latePackets.Clear();
+				//	}
+				//	while (copy.Count > 0)
+				//	{
+				//		var packet = copy.Dequeue();
+				//		var num = packet.Id;
+				//		buffer.Write(ref num);
+				//		packet.Serialize(buffer);
+				//	}
+				//}
 			}
 		});
 	}

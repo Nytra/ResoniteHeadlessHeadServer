@@ -1,5 +1,7 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using FrooxEngine.PhotonDust;
+using FrooxEngine.UIX;
 using SharedMemory;
 using System.Text;
 
@@ -112,17 +114,42 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		WorldId = owner.WorldId;
 		IsUserRootSlot = o.ActiveUserRoot?.Slot == o;
 		HasActiveUser = o.ActiveUser != null;
-		ShouldRender = o.GetComponent<MeshRenderer>() != null;
-		if (!ShouldRender)
+		ShouldRender = o.GetComponent<MeshRenderer>() != null || o.GetComponent<Canvas>() != null || o.GetComponent<ParticleSystem>() != null || o.GetComponent<LegacyParticleSystem>() != null; // also gets SkinnedMeshRenderer since it is inherited
+		
+		// search for skinned mesh in parents, could be heavy?
+		//if (!ShouldRender)
+		//{
+		//	if (o.GetComponentInParents<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
+		//	{
+		//		if (skinned.Bones.Contains(o))
+		//		{
+		//			ShouldRender = true;
+		//		}
+		//	}
+		//}
+		//if (!ShouldRender)
+		//{
+		//	ShouldRender = RecursiveSkinnedSearch(o, o);
+		//}
+	}
+
+	private static bool RecursiveSkinnedSearch(Slot s, Slot bone)
+	{
+		if (s.Parent != null)
 		{
-			if (o.GetComponentInParents<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
+			foreach (var child in s.Parent.Children)
 			{
-				if (skinned.Bones.Contains(o))
+				if (child.GetComponent<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
 				{
-					ShouldRender = true;
+					if (skinned.Bones.Contains(bone))
+					{
+						return true;
+					}
 				}
 			}
+			return RecursiveSkinnedSearch(s.Parent, bone);
 		}
+		return false;
 	}
 
 	public override void Serialize(CircularBuffer buffer)
@@ -213,7 +240,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Read(out Reparent);
 
-		var bytes = new byte[64];
+		var bytes = new byte[96];
 		buffer.Read(bytes);
 		SlotName = Encoding.UTF8.GetString(bytes);
 

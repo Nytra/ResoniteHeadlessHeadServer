@@ -12,15 +12,12 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 	public ulong RefID;
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
 	public long WorldId;
-	//public byte ForceLayer; // not needed yet
 	public bool ForceRender;
 
 	public override void Initialize()
 	{
 		RefID = Owner.ReferenceID.Position;
-		//ParentConnector = Owner.Parent?.Connector as SlotConnector;
 		WorldId = Owner.World.LocalWorldHandle;
-		//Thundagun.QueuePacket(new ApplyChangesSlotConnector(this, !Owner.IsRootSlot));
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
@@ -66,31 +63,6 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool ShouldRender;
 	public bool ForceRender;
 
-	//public ApplyChangesSlotConnector(SlotConnector owner, bool forceReparent) : base(owner)
-	//{
-	//	var o = owner.Owner;
-	//	var parent = o.Parent;
-	//	Active = o.ActiveSelf;
-	//	ActiveChanged = o.ActiveSelf_Field.GetWasChangedAndClear();
-	//	Position = o.Position_Field.Value;
-	//	PositionChanged = o.Position_Field.GetWasChangedAndClear();
-	//	Rotation = o.Rotation_Field.Value;
-	//	RotationChanged = o.Rotation_Field.GetWasChangedAndClear();
-	//	Scale = o.Scale_Field.Value;
-	//	ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
-	//	RefId = owner.RefID;
-	//	ParentRefId = o.Parent?.ReferenceID.Position ?? default;
-	//	HasParent = parent != null;
-	//	IsRootSlot = o.IsRootSlot;
-	//	//if ((parent?.Connector != owner.ParentConnector && parent != null) || forceReparent)
-	//	//{
-	//		//owner.ParentConnector = parent?.Connector as SlotConnector;
-	//		//Reparent = true;
-	//	//}
-	//	SlotName = o.Name ?? "NULL";
-	//	WorldId = owner.WorldId;
-	//}
-
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
 	{
 		var o = owner.Owner;
@@ -108,13 +80,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		HasParent = parent != null;
 		IsRootSlot = o.IsRootSlot;
 
-		//if (parent?.Connector != owner.ParentConnector && parent != null)
-		//{
-			//owner.ParentConnector = parent?.Connector as SlotConnector;
-			//Reparent = true;
-		//}
-
-		SlotName = o.Name ?? "NULL";
+		SlotName = o.Name?.Substring(0, Math.Min(o.Name?.Length ?? 0, 8)) ?? "NULL";
 		WorldId = owner.WorldId;
 		IsUserRootSlot = o.ActiveUserRoot?.Slot == o;
 		HasActiveUser = o.ActiveUser != null;
@@ -133,40 +99,6 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 				}
 			}
 		}
-		// search for skinned mesh in parents, could be heavy?
-		//if (!ShouldRender)
-		//{
-		//	if (o.GetComponentInParents<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
-		//	{
-		//		if (skinned.Bones.Contains(o))
-		//		{
-		//			ShouldRender = true;
-		//		}
-		//	}
-		//}
-		//if (!ShouldRender)
-		//{
-		//	ShouldRender = RecursiveSkinnedSearch(o, o);
-		//}
-	}
-
-	private static bool RecursiveSkinnedSearch(Slot s, Slot bone)
-	{
-		if (s.Parent != null)
-		{
-			foreach (var child in s.Parent.Children)
-			{
-				if (child.GetComponent<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
-				{
-					if (skinned.Bones.Contains(bone))
-					{
-						return true;
-					}
-				}
-			}
-			return RecursiveSkinnedSearch(s.Parent, bone);
-		}
-		return false;
 	}
 
 	public override void Serialize(CircularBuffer buffer)
@@ -259,9 +191,9 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Read(out Reparent);
 
-		var bytes = new byte[96];
+		var bytes = new byte[32];
 		buffer.Read(bytes);
-		SlotName = Encoding.UTF8.GetString(bytes);
+		SlotName = Encoding.UTF8.GetString(bytes).Trim();
 
 		buffer.Read(out WorldId);
 

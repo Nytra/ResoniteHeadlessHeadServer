@@ -12,7 +12,6 @@ public class Thundagun
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<IUpdatePacket> packets = new();
-	//private static Queue<IUpdatePacket> latePackets = new();
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		//UniLog.Log(packet.ToString());
@@ -21,14 +20,6 @@ public class Thundagun
 			packets.Enqueue(packet);
 		}
 	}
-	//public static void QueueLatePacket(IUpdatePacket packet)
-	//{
-	//	//UniLog.Log(packet.ToString());
-	//	lock (latePackets)
-	//	{
-	//		latePackets.Enqueue(packet);
-	//	}
-	//}
 	public static void Setup(string[] args)
 	{
 		Console.WriteLine("Server: Start of setup.");
@@ -56,7 +47,7 @@ public class Thundagun
 		Console.WriteLine($"Server: Opening main buffer with id {num2}.");
 
 		buffer = new CircularBuffer($"MyBuffer{num2}", 1024, 32);
-		var syncBuffer = new BufferReadWrite($"SyncBuffer", 1024);
+		var syncBuffer = new BufferReadWrite($"SyncBuffer", 4);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -81,11 +72,6 @@ public class Thundagun
 		Console.WriteLine("Server: Client connected.");
 
 		syncBuffer.Close();
-
-		UniLog.OnLog += (string str) =>
-		{
-			//sw.WriteLine(str);
-		};
 
 		if (START_CHILD_PROCESS)
 		{
@@ -124,22 +110,6 @@ public class Thundagun
 						packet.Serialize(buffer);
 					}
 				}
-				//if (latePackets.Count > 0)
-				//{
-				//	Queue<IUpdatePacket> copy;
-				//	lock (latePackets)
-				//	{
-				//		copy = new Queue<IUpdatePacket>(latePackets);
-				//		latePackets.Clear();
-				//	}
-				//	while (copy.Count > 0)
-				//	{
-				//		var packet = copy.Dequeue();
-				//		var num = packet.Id;
-				//		buffer.Write(ref num);
-				//		packet.Serialize(buffer);
-				//	}
-				//}
 			}
 		});
 	}

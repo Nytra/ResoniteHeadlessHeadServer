@@ -3,6 +3,7 @@ using System.Diagnostics;
 using FrooxEngine;
 using SharedMemory;
 using Thundagun.NewConnectors;
+using FrooxEngine.CommonAvatar;
 
 namespace Thundagun;
 
@@ -12,6 +13,8 @@ public class Thundagun
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<IUpdatePacket> packets = new();
+	private static Task packetTask;
+	private static int mainBufferId;
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		//UniLog.Log(packet.ToString());
@@ -42,36 +45,101 @@ public class Thundagun
 		Console.WriteLine("Server: Creating buffers...");
 
 		var rand = new Random();
-		int num2 = rand.Next();
+		mainBufferId = rand.Next();
+		if (mainBufferId == 0) mainBufferId = 1;
 
-		Console.WriteLine($"Server: Opening main buffer with id {num2}.");
+		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{num2}", 1024, 32);
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 128);
 		var syncBuffer = new BufferReadWrite($"SyncBuffer", 4);
+		var returnBuffer = new CircularBuffer("ReturnBuffer", 4, 4);
 
 		Console.WriteLine("Server: Buffers created.");
 
 		Engine.Current.OnShutdown += () => 
 		{ 
 			buffer.Close();
+			syncBuffer.Close();
+			returnBuffer.Close();
 		};
 
-		Console.WriteLine("Server: Waiting for the client to connect...");
-
 		// Send a 'sync message'
-		
-		int num;
-		syncBuffer.Write(ref num2);
 
-		do
+		//Console.WriteLine("Server: Writing main buffer id to sync buffer...");
+
+		//syncBuffer.Write(ref num2);
+
+		//Console.WriteLine("Server: Waiting for the client to connect...");
+
+		//int num;
+		//do
+		//{
+		//returnBuffer.Read(out num);
+		//}
+		//while (num != num2);
+
+		//Console.WriteLine("Server: Client connected.");
+
+		//syncBuffer.Close();
+
+		Task.Run(async () => 
 		{
-			buffer.Read(out num);
-		}
-		while (num != num2);
+			int mainBufferIdCopy = mainBufferId;
+			while (true)
+			{
+				syncBuffer.Write(ref mainBufferIdCopy);
 
-		Console.WriteLine("Server: Client connected.");
+				int num;
+				do
+				{
+					returnBuffer.Read(out num);
+				}
+				while (num != mainBufferIdCopy);
 
-		syncBuffer.Close();
+				// reconnected here
+				UniLog.Log("Reconnected!");
+
+				//buffer.Close();
+				//buffer = new CircularBuffer($"MyBuffer{num2}", 1024, 128);
+				packetTask?.Dispose();
+
+				//do
+				//{
+				//	var bytes = new byte[128];
+				//	buffer.Read(bytes);
+				//}
+				//while (buffer.NodeCount > 0);
+
+				//await Task.Delay(TimeSpan.FromSeconds(5));
+
+				foreach (var world in Engine.Current.WorldManager.Worlds)
+				{
+					var worldInit = new InitializeWorldConnector(world.Connector as WorldConnector);
+					var packetId = worldInit.Id;
+					buffer.Write(ref packetId);
+					worldInit.Serialize(buffer);
+
+					await Task.Delay(1);
+
+					foreach (var slot in world.AllSlots)
+					{
+						var slotInit = new ApplyChangesSlotConnector(slot.Connector as SlotConnector);
+						var packetId2 = slotInit.Id;
+						buffer.Write(ref packetId2);
+						slotInit.Serialize(buffer);
+
+						await Task.Delay(1);
+					}
+				}
+
+				var worldFocus = new ChangeFocusWorldConnector(Engine.Current.WorldManager.FocusedWorld.Connector as WorldConnector, World.WorldFocus.Focused);
+				var packetId3 = worldFocus.Id;
+				buffer.Write(ref packetId3);
+				worldFocus.Serialize(buffer);
+
+				//packetTask = Task.Run(ProcessPackets);
+			}
+		});
 
 		if (START_CHILD_PROCESS)
 		{
@@ -88,30 +156,31 @@ public class Thundagun
 			});
 		}
 
-		Console.WriteLine("Server: Starting packet loop.");
+		//Console.WriteLine("Server: Starting packet loop.");
 
-		Task.Run(async () => 
-		{ 
-			while (true)
+		//packetTask = Task.Run(ProcessPackets);
+	}
+	private static void ProcessPackets()
+	{
+		while (true)
+		{
+			if (packets.Count > 0)
 			{
-				if (packets.Count > 0)
+				Queue<IUpdatePacket> copy;
+				lock (packets)
 				{
-					Queue<IUpdatePacket> copy;
-					lock (packets)
-					{
-						copy = new Queue<IUpdatePacket>(packets);
-						packets.Clear();
-					}
-					while (copy.Count > 0)
-					{
-						var packet = copy.Dequeue();
-						var num = packet.Id;
-						buffer.Write(ref num);
-						packet.Serialize(buffer);
-					}
+					copy = new Queue<IUpdatePacket>(packets);
+					packets.Clear();
+				}
+				while (copy.Count > 0)
+				{
+					var packet = copy.Dequeue();
+					var num = packet.Id;
+					buffer.Write(ref num);
+					packet.Serialize(buffer);
 				}
 			}
-		});
+		}
 	}
 }
 

@@ -4,6 +4,7 @@ using FrooxEngine.PhotonDust;
 using FrooxEngine.UIX;
 using SharedMemory;
 using System.Text;
+using Elements.Assets;
 
 namespace Thundagun.NewConnectors;
 
@@ -80,25 +81,39 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		HasParent = parent != null;
 		IsRootSlot = o.IsRootSlot;
 
-		SlotName = o.Name?.Substring(0, Math.Min(o.Name?.Length ?? 0, 8)) ?? "NULL";
+		if (!string.IsNullOrEmpty(o.Name))
+		{
+			SlotName = new StringRenderTree(o.Name).GetRawString();
+			SlotName = SlotName.Substring(0, Math.Min(SlotName.Length, 32));
+		}
+		else
+		{
+			SlotName = "NULL";
+		}
+
 		WorldId = owner.WorldId;
 		IsUserRootSlot = o.ActiveUserRoot?.Slot == o;
 		HasActiveUser = o.ActiveUser != null;
-		ShouldRender = o.GetComponent<MeshRenderer>() != null || o.GetComponent<Canvas>() != null || o.GetComponent<ParticleSystem>() != null || o.GetComponent<LegacyParticleSystem>() != null; // also gets SkinnedMeshRenderer since it is inherited
+		ShouldRender = o.GetComponent<MeshRenderer>() != null ||
+			o.GetComponent<Canvas>() != null ||
+			o.GetComponent<ParticleSystem>() != null ||
+			o.GetComponent<LegacyParticleSystem>() != null ||
+			o.GetComponent<Light>() != null ||
+			o.GetComponent<ReflectionProbe>() != null; // also gets SkinnedMeshRenderer since it is inherited
 		ForceRender = owner.ForceRender;
 
-		if (o.GetComponent<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
-		{
-			foreach (var bone in skinned.Bones)
-			{
-				var slotConn = bone.Connector as SlotConnector;
-				if (!slotConn.ForceRender)
-				{
-					slotConn.ForceRender = true;
-					Thundagun.QueuePacket(new ApplyChangesSlotConnector(slotConn));
-				}
-			}
-		}
+		//if (o.GetComponent<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
+		//{
+		//	foreach (var bone in skinned.Bones)
+		//	{
+		//		var slotConn = bone.Connector as SlotConnector;
+		//		if (!slotConn.ForceRender)
+		//		{
+		//			slotConn.ForceRender = true;
+		//			Thundagun.QueuePacket(new ApplyChangesSlotConnector(slotConn));
+		//		}
+		//	}
+		//}
 	}
 
 	public override void Serialize(CircularBuffer buffer)
@@ -191,7 +206,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Read(out Reparent);
 
-		var bytes = new byte[32];
+		var bytes = new byte[128];
 		buffer.Read(bytes);
 		SlotName = Encoding.UTF8.GetString(bytes).Trim();
 

@@ -65,81 +65,22 @@ public class Thundagun
 
 		// Send a 'sync message'
 
-		//Console.WriteLine("Server: Writing main buffer id to sync buffer...");
+		Console.WriteLine("Server: Writing main buffer id to sync buffer...");
 
-		//syncBuffer.Write(ref num2);
+		syncBuffer.Write(ref mainBufferId);
 
-		//Console.WriteLine("Server: Waiting for the client to connect...");
+		Console.WriteLine("Server: Waiting for the client to connect...");
 
-		//int num;
-		//do
-		//{
-		//returnBuffer.Read(out num);
-		//}
-		//while (num != num2);
-
-		//Console.WriteLine("Server: Client connected.");
-
-		//syncBuffer.Close();
-
-		Task.Run(async () => 
+		int num;
+		do
 		{
-			int mainBufferIdCopy = mainBufferId;
-			while (true)
-			{
-				syncBuffer.Write(ref mainBufferIdCopy);
+		returnBuffer.Read(out num);
+		}
+		while (num != mainBufferId);
 
-				int num;
-				do
-				{
-					returnBuffer.Read(out num);
-				}
-				while (num != mainBufferIdCopy);
+		Console.WriteLine("Server: Client connected.");
 
-				// reconnected here
-				UniLog.Log("Reconnected!");
-
-				//buffer.Close();
-				//buffer = new CircularBuffer($"MyBuffer{num2}", 1024, 128);
-				packetTask?.Dispose();
-
-				//do
-				//{
-				//	var bytes = new byte[128];
-				//	buffer.Read(bytes);
-				//}
-				//while (buffer.NodeCount > 0);
-
-				//await Task.Delay(TimeSpan.FromSeconds(5));
-
-				foreach (var world in Engine.Current.WorldManager.Worlds)
-				{
-					var worldInit = new InitializeWorldConnector(world.Connector as WorldConnector);
-					var packetId = worldInit.Id;
-					buffer.Write(ref packetId);
-					worldInit.Serialize(buffer);
-
-					await Task.Delay(1);
-
-					foreach (var slot in world.AllSlots)
-					{
-						var slotInit = new ApplyChangesSlotConnector(slot.Connector as SlotConnector);
-						var packetId2 = slotInit.Id;
-						buffer.Write(ref packetId2);
-						slotInit.Serialize(buffer);
-
-						await Task.Delay(1);
-					}
-				}
-
-				var worldFocus = new ChangeFocusWorldConnector(Engine.Current.WorldManager.FocusedWorld.Connector as WorldConnector, World.WorldFocus.Focused);
-				var packetId3 = worldFocus.Id;
-				buffer.Write(ref packetId3);
-				worldFocus.Serialize(buffer);
-
-				//packetTask = Task.Run(ProcessPackets);
-			}
-		});
+		syncBuffer.Close();
 
 		if (START_CHILD_PROCESS)
 		{
@@ -156,9 +97,9 @@ public class Thundagun
 			});
 		}
 
-		//Console.WriteLine("Server: Starting packet loop.");
+		Console.WriteLine("Server: Starting packet loop.");
 
-		//packetTask = Task.Run(ProcessPackets);
+		packetTask = Task.Run(ProcessPackets);
 	}
 	private static void ProcessPackets()
 	{

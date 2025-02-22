@@ -97,7 +97,6 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		ShouldRender = o.GetComponent<MeshRenderer>() != null ||
 			o.GetComponent<Canvas>() != null ||
 			o.GetComponent<ParticleSystem>() != null ||
-			o.GetComponent<LegacyParticleSystem>() != null ||
 			o.GetComponent<Light>() != null ||
 			o.GetComponent<ReflectionProbe>() != null; // also gets SkinnedMeshRenderer since it is inherited
 		ForceRender = owner.ForceRender;

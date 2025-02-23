@@ -6,7 +6,7 @@ using SharedMemory;
 using System.Text;
 using Elements.Assets;
 
-namespace Thundagun.NewConnectors;
+namespace Thundagun;
 
 public class SlotConnector : Connector<Slot>, ISlotConnector
 {

@@ -1,6 +1,8 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 
+namespace Thundagun;
+
 public class WorldManagerConnector : IWorldManagerConnector
 {
 	public async Task Initialize(WorldManager owner)

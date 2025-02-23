@@ -3,7 +3,7 @@ using FrooxEngine;
 using SharedMemory;
 using System.Runtime.Serialization;
 
-namespace Thundagun.NewConnectors;
+namespace Thundagun;
 
 public class WorldConnector : IWorldConnector
 {

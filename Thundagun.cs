@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using FrooxEngine;
 using SharedMemory;
-using Thundagun.NewConnectors;
-using FrooxEngine.CommonAvatar;
 
 namespace Thundagun;
 
@@ -81,6 +79,7 @@ public class Thundagun
 		Console.WriteLine("Server: Client connected.");
 
 		syncBuffer.Close();
+		returnBuffer.Close();
 
 		if (START_CHILD_PROCESS)
 		{
@@ -151,5 +150,7 @@ public enum PacketTypes
 	DestroySlot,
 	InitializeWorld,
 	ChangeFocusWorld,
-	DestroyWorld
+	DestroyWorld,
+	ApplyChangesMeshRenderer,
+	DestroyMeshRenderer
 }

@@ -2,6 +2,7 @@
 using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
+using System.Text;
 
 namespace Thundagun;
 
@@ -9,19 +10,16 @@ public class MeshRendererConnector : Connector<MeshRenderer>
 {
 	public override void ApplyChanges()
 	{
-		//if (Owner is SkinnedMeshRenderer) return;
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector(this));
 	}
 
 	public override void Destroy(bool destroyingWorld)
 	{
-		//if (Owner is SkinnedMeshRenderer) return;
 		Thundagun.QueuePacket(new DestroyMeshRendererConnector(this, destroyingWorld));
 	}
 
 	public override void Initialize()
 	{
-		//if (Owner is SkinnedMeshRenderer) return;
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector(this));
 	}
 }
@@ -31,29 +29,66 @@ public class ApplyChangesMeshRendererConnector : UpdatePacket<MeshRendererConnec
 	List<float3> verts = new();
 	List<float3> normals = new();
 	List<float4> tangents = new();
+	List<color> colors = new();
 	List<int> triangleIndices = new();
 	ulong slotRefId;
 	long worldId;
+	string shaderPath;
 	public ApplyChangesMeshRendererConnector(MeshRendererConnector owner) : base(owner)
 	{
 		slotRefId = owner.Owner.Slot.ReferenceID.Position;
 		worldId = owner.Owner.World.LocalWorldHandle;
-		MeshX mesh = owner.Owner.Mesh.Asset?.Data;
+		var asset = owner.Owner.Material.Target?.Asset;
+		shaderPath = "NULL";
+		var matprovider = asset?.Owner as MaterialProvider;
+		if (matprovider != null)
+		{
+			HashSet<StaticShader> hashset = matprovider.GetProviders<StaticShader>();
+			var shad = hashset.FirstOrDefault();
+			if (shad != null)
+			{
+				shaderPath = shad.Asset?.AssetURL?.LocalPath ?? "NULL";
+				shaderPath = shaderPath.Substring(0, Math.Min(shaderPath.Length, 128));
+				//UniLog.Log($"StaticShader LocalPath: {shaderPath}");
+			}
+		}
+		MeshX mesh = owner.Owner.Mesh?.Asset?.Data;
 		if (mesh != null)
 		{
-			foreach (var vert in mesh.RawPositions)
+			if (mesh.RawPositions != null)
 			{
-				verts.Add(new float3(vert.x, vert.y, vert.z));
+				foreach (var vert in mesh.RawPositions)
+				{
+					verts.Add(new float3(vert.x, vert.y, vert.z));
+				}
 			}
-			foreach (var normal in mesh.RawNormals)
+			
+			if (mesh.RawNormals != null)
 			{
-				normals.Add(new float3(normal.x, normal.y, normal.z));
+				foreach (var normal in mesh.RawNormals)
+				{
+					normals.Add(new float3(normal.x, normal.y, normal.z));
+				}
 			}
-			foreach (var tangent in mesh.RawTangents)
+			
+			if (mesh.RawTangents != null)
 			{
-				tangents.Add(new float4(tangent.x, tangent.y, tangent.z, tangent.w));
+				foreach (var tangent in mesh.RawTangents)
+				{
+					tangents.Add(new float4(tangent.x, tangent.y, tangent.z, tangent.w));
+				}
 			}
-			foreach (var sm in mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh))
+
+			if (mesh.RawColors != null)
+			{
+				foreach (var color in mesh.RawColors)
+				{
+					colors.Add(new color(color.r, color.g, color.b, color.a));
+				}
+			}
+			
+			var triSms = mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh);
+			foreach (var sm in triSms)
 			{ 
 				var triSm = (TriangleSubmesh)sm;
 				for (int i = 0; i < triSm.Count; i++)
@@ -73,6 +108,10 @@ public class ApplyChangesMeshRendererConnector : UpdatePacket<MeshRendererConnec
 	{
 		buffer.Read(out slotRefId);
 		buffer.Read(out worldId);
+
+		var bytes2 = new byte[512];
+		buffer.Read(bytes2);
+		shaderPath = Encoding.UTF8.GetString(bytes2);
 
 		int vertCount;
 		buffer.Read(out vertCount);
@@ -112,6 +151,20 @@ public class ApplyChangesMeshRendererConnector : UpdatePacket<MeshRendererConnec
 			buffer.Read(out w);
 		}
 
+		int colorCount;
+		buffer.Read(out colorCount);
+		for (int i = 0; i < colorCount; i++)
+		{
+			float r;
+			buffer.Read(out r);
+			float g;
+			buffer.Read(out g);
+			float b;
+			buffer.Read(out b);
+			float a;
+			buffer.Read(out a);
+		}
+
 		int triangleIndexCount;
 		buffer.Read(out triangleIndexCount);
 		for (int i = 0; i < triangleIndexCount / 3; i++)
@@ -129,6 +182,7 @@ public class ApplyChangesMeshRendererConnector : UpdatePacket<MeshRendererConnec
 	{
 		buffer.Write(ref slotRefId);
 		buffer.Write(ref worldId);
+		buffer.Write(Encoding.UTF8.GetBytes(shaderPath));
 
 		int vertCount = verts.Count;
 		buffer.Write(ref vertCount);
@@ -166,6 +220,20 @@ public class ApplyChangesMeshRendererConnector : UpdatePacket<MeshRendererConnec
 			buffer.Write(ref z);
 			float w = tangent.w;
 			buffer.Write(ref w);
+		}
+
+		int colorCount = colors.Count;
+		buffer.Write(ref colorCount);
+		foreach (var color in colors)
+		{
+			float r = color.r;
+			buffer.Write(ref r);
+			float g = color.g;
+			buffer.Write(ref g);
+			float b = color.b;
+			buffer.Write(ref b);
+			float a = color.a;
+			buffer.Write(ref a);
 		}
 
 		int triangleIndexCount = triangleIndices.Count;

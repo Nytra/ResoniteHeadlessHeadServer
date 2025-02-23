@@ -48,7 +48,7 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 128);
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 1024);
 		var syncBuffer = new BufferReadWrite($"SyncBuffer", 4);
 		var returnBuffer = new CircularBuffer("ReturnBuffer", 4, 4);
 
@@ -72,7 +72,7 @@ public class Thundagun
 		int num;
 		do
 		{
-		returnBuffer.Read(out num);
+			returnBuffer.Read(out num);
 		}
 		while (num != mainBufferId);
 
@@ -152,5 +152,6 @@ public enum PacketTypes
 	ChangeFocusWorld,
 	DestroyWorld,
 	ApplyChangesMeshRenderer,
-	DestroyMeshRenderer
+	DestroyMeshRenderer,
+	LoadFromFileShader
 }

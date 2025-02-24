@@ -48,7 +48,7 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 1024);
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 262144, 128);
 		var syncBuffer = new BufferReadWrite($"SyncBuffer", 4);
 		var returnBuffer = new CircularBuffer("ReturnBuffer", 4, 4);
 

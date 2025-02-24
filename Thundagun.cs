@@ -8,6 +8,7 @@ namespace Thundagun;
 public class Thundagun
 {
 	private static CircularBuffer buffer;
+	private static CircularBuffer returnBuffer;
 	private static Process childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<IUpdatePacket> packets = new();
@@ -48,9 +49,9 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 262144, 128);
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 8192, 128);
 		var syncBuffer = new BufferReadWrite($"SyncBuffer", 4);
-		var returnBuffer = new CircularBuffer("ReturnBuffer", 4, 4);
+		returnBuffer = new CircularBuffer("ReturnBuffer", 4, 4);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -79,7 +80,7 @@ public class Thundagun
 		Console.WriteLine("Server: Client connected.");
 
 		syncBuffer.Close();
-		returnBuffer.Close();
+		//returnBuffer.Close();
 
 		if (START_CHILD_PROCESS)
 		{
@@ -120,6 +121,8 @@ public class Thundagun
 					packet.Serialize(buffer);
 				}
 			}
+			//int n;
+			//returnBuffer.Read(out n);
 		}
 	}
 }

@@ -39,19 +39,19 @@ public class LoadFromFileShaderConnector : UpdatePacket<ShaderConnector>
 	string LocalPath;
 	public LoadFromFileShaderConnector(ShaderConnector owner) : base(owner)
 	{
-		File = owner.File.Substring(0, Math.Min(owner.File.Length, 128));
-		LocalPath = owner.LocalPath.Substring(0, Math.Min(owner.LocalPath.Length, 128)); ;
+		File = owner.File.Substring(0, Math.Min(owner.File.Length, Thundagun.MAX_STRING_LENGTH));
+		LocalPath = owner.LocalPath.Substring(0, Math.Min(owner.LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 	}
 
 	public override int Id => (int)PacketTypes.LoadFromFileShader;
 
 	public override void Deserialize(CircularBuffer buffer)
 	{
-		var bytes = new byte[512];
+		var bytes = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes);
 		File = Encoding.UTF8.GetString(bytes);
 
-		var bytes2 = new byte[512];
+		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes2);
 		LocalPath = Encoding.UTF8.GetString(bytes2);
 	}

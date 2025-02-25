@@ -7,13 +7,14 @@ namespace Thundagun;
 
 public class Thundagun
 {
-	private static CircularBuffer buffer;
-	private static CircularBuffer returnBuffer;
-	private static Process childProcess;
+	private static CircularBuffer? buffer;
+	private static CircularBuffer? returnBuffer;
+	private static BufferReadWrite? syncBuffer;
+	private static Process? childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<IUpdatePacket> packets = new();
-	private static Task packetTask;
 	private static int mainBufferId;
+	public const int MAX_STRING_LENGTH = 256; // UTF8
 	public static void QueuePacket(IUpdatePacket packet)
 	{
 		//UniLog.Log(packet.ToString());
@@ -49,17 +50,18 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 8192, 128);
-		var syncBuffer = new BufferReadWrite($"SyncBuffer", 4);
-		returnBuffer = new CircularBuffer("ReturnBuffer", 4, 4);
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 32768, MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong)));
+		syncBuffer = new BufferReadWrite($"SyncBuffer5", sizeof(int));
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 2, sizeof(int));
 
 		Console.WriteLine("Server: Buffers created.");
 
 		Engine.Current.OnShutdown += () => 
 		{ 
 			buffer.Close();
-			syncBuffer.Close();
-			returnBuffer.Close();
+			buffer = null;
+			syncBuffer?.Close();
+			returnBuffer?.Close();
 		};
 
 		// Send a 'sync message'
@@ -80,7 +82,9 @@ public class Thundagun
 		Console.WriteLine("Server: Client connected.");
 
 		syncBuffer.Close();
-		//returnBuffer.Close();
+		syncBuffer = null;
+		returnBuffer.Close();
+		returnBuffer = null;
 
 		if (START_CHILD_PROCESS)
 		{
@@ -99,7 +103,7 @@ public class Thundagun
 
 		Console.WriteLine("Server: Starting packet loop.");
 
-		packetTask = Task.Run(ProcessPackets);
+		Task.Run(ProcessPackets);
 	}
 	private static void ProcessPackets()
 	{
@@ -122,7 +126,7 @@ public class Thundagun
 				}
 			}
 			//int n;
-			//returnBuffer.Read(out n);
+			//returnBuffer.Read(out n); // halt until the client sends data in this buffer
 		}
 	}
 }
@@ -156,5 +160,6 @@ public enum PacketTypes
 	DestroyWorld,
 	ApplyChangesMeshRenderer,
 	DestroyMeshRenderer,
-	LoadFromFileShader
+	LoadFromFileShader,
+	ApplyChangesMeshConnector
 }

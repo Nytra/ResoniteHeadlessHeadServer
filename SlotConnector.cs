@@ -84,7 +84,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		if (!string.IsNullOrEmpty(o.Name))
 		{
 			SlotName = new StringRenderTree(o.Name).GetRawString();
-			SlotName = SlotName.Substring(0, Math.Min(SlotName.Length, 32));
+			SlotName = SlotName.Substring(0, Math.Min(SlotName.Length, Thundagun.MAX_STRING_LENGTH));
 		}
 		else
 		{
@@ -205,7 +205,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Read(out Reparent);
 
-		var bytes = new byte[128];
+		var bytes = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes);
 		SlotName = Encoding.UTF8.GetString(bytes).Trim();
 

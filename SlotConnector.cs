@@ -17,15 +17,15 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 
 	public override void Initialize()
 	{
-		RefID = Owner.ReferenceID.Position;
+		RefID = Owner.ReferenceID.Position + Owner.ReferenceID.User;
 		WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void ApplyChanges()
 	{
-		//RefID = Owner.ReferenceID.Position;
-		//WorldId = Owner.World.LocalWorldHandle;
+		RefID = Owner.ReferenceID.Position + Owner.ReferenceID.User;
+		WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
@@ -63,6 +63,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public bool HasActiveUser;
 	public bool ShouldRender;
 	public bool ForceRender;
+	public bool IsLocalElement;
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
 	{
@@ -77,9 +78,10 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		Scale = o.Scale_Field.Value;
 		ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
 		RefId = owner.RefID;
-		ParentRefId = o.Parent?.ReferenceID.Position ?? default;
+		ParentRefId = o.Parent?.ReferenceID.Position + o.Parent?.ReferenceID.User ?? default;
 		HasParent = parent != null;
 		IsRootSlot = o.IsRootSlot;
+		IsLocalElement = o.IsLocalElement;
 
 		if (!string.IsNullOrEmpty(o.Name))
 		{
@@ -167,6 +169,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Write(ref ShouldRender);
 
 		buffer.Write(ref ForceRender);
+
+		buffer.Write(ref IsLocalElement);
 	}
 	public override void Deserialize(CircularBuffer buffer)
 	{
@@ -218,6 +222,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		buffer.Read(out ShouldRender);
 
 		buffer.Read(out ForceRender);
+
+		buffer.Read(out IsLocalElement);
 	}
 	public override string ToString()
 	{

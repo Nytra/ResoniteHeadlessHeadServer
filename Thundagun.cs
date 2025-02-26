@@ -12,15 +12,23 @@ public class Thundagun
 	private static BufferReadWrite? syncBuffer;
 	private static Process? childProcess;
 	private const bool START_CHILD_PROCESS = false;
-	private static Queue<IUpdatePacket> packets = new();
+	private static Queue<PacketStruct> packets = new();
 	private static int mainBufferId;
 	public const int MAX_STRING_LENGTH = 256; // UTF8
-	public static void QueuePacket(IUpdatePacket packet)
+	public struct PacketStruct
+	{
+		public IUpdatePacket packet;
+		public Action callback;
+	}
+	public static void QueuePacket(IUpdatePacket packet, Action callback = null)
 	{
 		//UniLog.Log(packet.ToString());
+		var packetStruct = new PacketStruct();
+		packetStruct.packet = packet;
+		packetStruct.callback = callback;
 		lock (packets)
 		{
-			packets.Enqueue(packet);
+			packets.Enqueue(packetStruct);
 		}
 	}
 	public static void Setup(string[] args)
@@ -50,9 +58,9 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 32768, MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong)));
-		syncBuffer = new BufferReadWrite($"SyncBuffer5", sizeof(int));
-		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 2, sizeof(int));
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 128); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
+		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 128);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -111,24 +119,44 @@ public class Thundagun
 		{
 			if (packets.Count > 0)
 			{
-				Queue<IUpdatePacket> copy;
+				Queue<PacketStruct> copy;
 				lock (packets)
 				{
-					copy = new Queue<IUpdatePacket>(packets);
+					copy = new Queue<PacketStruct>(packets);
 					packets.Clear();
 				}
 				while (copy.Count > 0)
 				{
-					var packet = copy.Dequeue();
-					var num = packet.Id;
+					var packetStruct = copy.Dequeue();
+					var num = packetStruct.packet.Id;
 					buffer.Write(ref num);
-					packet.Serialize(buffer);
+					packetStruct.packet.Serialize(buffer);
+					try
+					{
+						packetStruct.callback?.Invoke();
+					}
+					catch (Exception e)
+					{
+						UniLog.Error($"Exception running packet queue callback: {e}");
+					}
 				}
 			}
 			//int n;
 			//returnBuffer.Read(out n); // halt until the client sends data in this buffer
 		}
 	}
+	//private static void ReturnThread()
+	//{
+	//	while (true)
+	//	{
+	//		int num;
+	//		returnBuffer.Read(out num);
+	//		if (num == 5)
+	//		{
+
+	//		}
+	//	}
+	//}
 }
 
 public abstract class UpdatePacket<T> : IUpdatePacket
@@ -160,6 +188,6 @@ public enum PacketTypes
 	DestroyWorld,
 	ApplyChangesMeshRenderer,
 	DestroyMeshRenderer,
-	LoadFromFileShader,
-	ApplyChangesMeshConnector
+	LoadFromFileShader
+	//ApplyChangesMesh
 }

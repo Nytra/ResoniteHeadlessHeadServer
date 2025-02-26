@@ -8,47 +8,49 @@ namespace Thundagun;
 
 public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 {
-	//int timesRendered = 0;
 	public override void ApplyChanges()
 	{
-		if (Owner.Mesh.Asset is null) return;
-		//if (Owner.IsLocalElement) return;
-		//if (Owner.Mesh.GetWasChangedAndClear()) timesRendered = 0;
-		if (!MeshUpdateTracker.assetToRenderers.ContainsKey(Owner.Mesh.Asset))
-		{
-			lock (MeshUpdateTracker.assetToRenderers)
-			{
-				MeshUpdateTracker.assetToRenderers.Add(Owner.Mesh.Asset, new());
-				MeshUpdateTracker.assetToRenderers[Owner.Mesh.Asset].Add(Owner);
-			}
-			lock (MeshUpdateTracker.changedMeshes)
-			{
-				MeshUpdateTracker.changedMeshes.Add(Owner.Mesh.Asset);
-			}
-		}
-		if (!MeshUpdateTracker.changedMeshes.Contains(Owner.Mesh.Asset)) return;
-
-		//if (timesRendered >= 5) return;
-		//timesRendered++;
-		//if (Owner is SkinnedMeshRenderer skinned)
+		//if (Owner.Mesh.Asset is null) return;
+		//if (!MeshUpdateTracker.assetToRenderers.ContainsKey(Owner.Mesh.Asset))
 		//{
-		//	if (!skinned.Mesh.WasChanged && !skinned.BlendShapeWeightsChanged && !skinned.BonesChanged) return;
+		//	lock (MeshUpdateTracker.assetToRenderers)
+		//	{
+		//		MeshUpdateTracker.assetToRenderers.Add(Owner.Mesh.Asset, new());
+		//		MeshUpdateTracker.assetToRenderers[Owner.Mesh.Asset].Add(Owner);
+		//	}
+		//	lock (MeshUpdateTracker.changedMeshes)
+		//	{
+		//		MeshUpdateTracker.changedMeshes.Add(Owner.Mesh.Asset);
+		//	}
 		//}
-		//else
+		//if (Owner is SkinnedMeshRenderer skinned && (skinned.BonesChanged || skinned.BlendShapeWeightsChanged || skinned.Mesh.GetWasChangedAndClear()))
 		//{
-		//	if (!Owner.Mesh.WasChanged) return;
+		//	skinned.BonesChanged = false;
+		//	skinned.BlendShapeWeightsChanged = false;
+		//	lock (MeshUpdateTracker.changedMeshes)
+		//	{
+		//		MeshUpdateTracker.changedMeshes.Add(Owner.Mesh.Asset);
+		//	}
+		//}
+		//else if (Owner.Mesh.GetWasChangedAndClear())
+		//{
+		//	lock (MeshUpdateTracker.changedMeshes)
+		//	{
+		//		MeshUpdateTracker.changedMeshes.Add(Owner.Mesh.Asset);
+		//	}
+		//}
+		//if (!MeshUpdateTracker.changedMeshes.Contains(Owner.Mesh.Asset)) return;
+		//void cb()
+		//{
+		//	lock (MeshUpdateTracker.changedMeshes)
+		//	{
+		//		MeshUpdateTracker.changedMeshes.Remove(Owner.Mesh.Asset);
+		//	}
 		//}
 
-		void cb()
-		{
-			lock (MeshUpdateTracker.changedMeshes)
-			{
-				MeshUpdateTracker.changedMeshes.Remove(Owner.Mesh.Asset);
-			}
-			//var conn = MeshUpdateTracker.assetToConnector[Owner.Mesh.Asset];
-			//conn.lastOnUpdated.Invoke(true);
-		}
-		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this), cb);
+		if (Owner.Mesh.Asset?.AssetURL?.LocalPath is null) return;
+
+		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 		//cb();
 	}
 
@@ -80,16 +82,15 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 	List<ulong> boneRefIds = new();
 	string meshPath;
 
-	List<float3> verts = new();
-	List<float3> normals = new();
-	List<float4> tangents = new();
-	List<color> colors = new();
-	List<int> triangleIndices = new();
-	List<BoneBinding> boneBindings = new();
-	List<Bone> bones = new();
-	List<BlendShapeFrame> blendShapeFrames = new();
-	//string localPath;
-	BoundingBox bounds;
+	//List<float3> verts = new();
+	//List<float3> normals = new();
+	//List<float4> tangents = new();
+	//List<color> colors = new();
+	//List<int> triangleIndices = new();
+	//List<BoneBinding> boneBindings = new();
+	//List<Bone> bones = new();
+	//List<BlendShapeFrame> blendShapeFrames = new();
+	//BoundingBox bounds;
 
 	public ApplyChangesMeshRendererConnector(MeshRendererConnectorBase<T> owner) : base(owner)
 	{
@@ -125,84 +126,83 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			}
 		}
 
-		//localPath = meshPath;
-		MeshX mesh = owner.Owner.Mesh.Asset?.Data;
+		//MeshX mesh = owner.Owner.Mesh.Asset?.Data;
 		//bounds = owner.Bounds;
-		if (mesh != null)
-		{
-			if (mesh.RawPositions != null)
-			{
-				//UniLog.Log($"Mesh has {mesh.RawPositions.Length} verts");
-				foreach (var vert in mesh.RawPositions)
-				{
-					verts.Add(new float3(vert.x, vert.y, vert.z));
-				}
-			}
+		//if (mesh != null)
+		//{
+		//	if (mesh.RawPositions != null)
+		//	{
+		//		//UniLog.Log($"Mesh has {mesh.RawPositions.Length} verts");
+		//		foreach (var vert in mesh.RawPositions)
+		//		{
+		//			verts.Add(new float3(vert.x, vert.y, vert.z));
+		//		}
+		//	}
 
-			if (mesh.RawNormals != null)
-			{
-				foreach (var normal in mesh.RawNormals)
-				{
-					normals.Add(new float3(normal.x, normal.y, normal.z));
-				}
-			}
+		//	if (mesh.RawNormals != null)
+		//	{
+		//		foreach (var normal in mesh.RawNormals)
+		//		{
+		//			normals.Add(new float3(normal.x, normal.y, normal.z));
+		//		}
+		//	}
 
-			if (mesh.RawTangents != null)
-			{
-				foreach (var tangent in mesh.RawTangents)
-				{
-					tangents.Add(new float4(tangent.x, tangent.y, tangent.z, tangent.w));
-				}
-			}
+		//	if (mesh.RawTangents != null)
+		//	{
+		//		foreach (var tangent in mesh.RawTangents)
+		//		{
+		//			tangents.Add(new float4(tangent.x, tangent.y, tangent.z, tangent.w));
+		//		}
+		//	}
 
-			if (mesh.RawColors != null)
-			{
-				foreach (var color in mesh.RawColors)
-				{
-					colors.Add(new color(color.r, color.g, color.b, color.a));
-				}
-			}
+		//	if (mesh.RawColors != null)
+		//	{
+		//		foreach (var color in mesh.RawColors)
+		//		{
+		//			colors.Add(new color(color.r, color.g, color.b, color.a));
+		//		}
+		//	}
 
-			var triSms = mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh);
-			foreach (var sm in triSms)
-			{
-				var triSm = (TriangleSubmesh)sm;
-				for (int i = 0; i < triSm.Count; i++)
-				{
-					var tri = triSm.GetTriangle(i);
-					triangleIndices.Add(tri.Vertex0Index);
-					triangleIndices.Add(tri.Vertex1Index);
-					triangleIndices.Add(tri.Vertex2Index);
-				}
-			}
+		//	var triSms = mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh);
+		//	foreach (var sm in triSms)
+		//	{
+		//		var triSm = (TriangleSubmesh)sm;
+		//		for (int i = 0; i < triSm.Count; i++)
+		//		{
+		//			var tri = triSm.GetTriangle(i);
+		//			triangleIndices.Add(tri.Vertex0Index);
+		//			triangleIndices.Add(tri.Vertex1Index);
+		//			triangleIndices.Add(tri.Vertex2Index);
+		//		}
+		//	}
 
-			if (mesh.RawBoneBindings != null)
-			{
-				foreach (var boneBinding in mesh.RawBoneBindings)
-				{
-					boneBindings.Add(boneBinding);
-				}
-			}
+		//	if (mesh.RawBoneBindings != null)
+		//	{
+		//		foreach (var boneBinding in mesh.RawBoneBindings)
+		//		{
+		//			boneBindings.Add(boneBinding);
+		//		}
+		//	}
 
-			if (mesh.Bones != null)
-			{
-				foreach (var bone in mesh.Bones)
-				{
-					bones.Add(bone);
-				}
-			}
+		//	if (mesh.Bones != null)
+		//	{
+		//		foreach (var bone in mesh.Bones)
+		//		{
+		//			bones.Add(bone);
+		//		}
+		//	}
 
-			if (mesh.BlendShapes != null)
-			{
-				foreach (var blendShape in mesh.BlendShapes)
-				{
-					foreach (var frame in blendShape.Frames)
-					{
-						blendShapeFrames.Add(frame);
-					}
-				}
-			}
-		}
+		//	if (mesh.BlendShapes != null)
+		//	{
+		//		foreach (var blendShape in mesh.BlendShapes)
+		//		{
+		//			foreach (var frame in blendShape.Frames)
+		//			{
+		//				blendShapeFrames.Add(frame);
+		//			}
+		//		}
+		//	}
+		//}
 	}
 
 	public override int Id => (int)PacketTypes.ApplyChangesMeshRenderer;
@@ -232,123 +232,119 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			}
 		}
 
-		//var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
-		//buffer.Read(bytes2);
-		//localPath = Encoding.UTF8.GetString(bytes2);
+		//int vertCount;
+		//buffer.Read(out vertCount);
+		//for (int i = 0; i < vertCount; i++)
+		//{
+		//	float x;
+		//	buffer.Read(out x);
+		//	float y;
+		//	buffer.Read(out y);
+		//	float z;
+		//	buffer.Read(out z);
+		//}
 
-		int vertCount;
-		buffer.Read(out vertCount);
-		for (int i = 0; i < vertCount; i++)
-		{
-			float x;
-			buffer.Read(out x);
-			float y;
-			buffer.Read(out y);
-			float z;
-			buffer.Read(out z);
-		}
+		//int normalCount;
+		//buffer.Read(out normalCount);
+		//for (int i = 0; i < normalCount; i++)
+		//{
+		//	float x;
+		//	buffer.Read(out x);
+		//	float y;
+		//	buffer.Read(out y);
+		//	float z;
+		//	buffer.Read(out z);
+		//}
 
-		int normalCount;
-		buffer.Read(out normalCount);
-		for (int i = 0; i < normalCount; i++)
-		{
-			float x;
-			buffer.Read(out x);
-			float y;
-			buffer.Read(out y);
-			float z;
-			buffer.Read(out z);
-		}
+		//int tangentCount;
+		//buffer.Read(out tangentCount);
+		//for (int i = 0; i < tangentCount; i++)
+		//{
+		//	float x;
+		//	buffer.Read(out x);
+		//	float y;
+		//	buffer.Read(out y);
+		//	float z;
+		//	buffer.Read(out z);
+		//	float w;
+		//	buffer.Read(out w);
+		//}
 
-		int tangentCount;
-		buffer.Read(out tangentCount);
-		for (int i = 0; i < tangentCount; i++)
-		{
-			float x;
-			buffer.Read(out x);
-			float y;
-			buffer.Read(out y);
-			float z;
-			buffer.Read(out z);
-			float w;
-			buffer.Read(out w);
-		}
+		//int colorCount;
+		//buffer.Read(out colorCount);
+		//for (int i = 0; i < colorCount; i++)
+		//{
+		//	float r;
+		//	buffer.Read(out r);
+		//	float g;
+		//	buffer.Read(out g);
+		//	float b;
+		//	buffer.Read(out b);
+		//	float a;
+		//	buffer.Read(out a);
+		//}
 
-		int colorCount;
-		buffer.Read(out colorCount);
-		for (int i = 0; i < colorCount; i++)
-		{
-			float r;
-			buffer.Read(out r);
-			float g;
-			buffer.Read(out g);
-			float b;
-			buffer.Read(out b);
-			float a;
-			buffer.Read(out a);
-		}
+		//int triangleIndexCount;
+		//buffer.Read(out triangleIndexCount);
+		//for (int i = 0; i < triangleIndexCount / 3; i++)
+		//{
+		//	int i0;
+		//	buffer.Read(out i0);
+		//	int i1;
+		//	buffer.Read(out i1);
+		//	int i2;
+		//	buffer.Read(out i2);
+		//}
 
-		int triangleIndexCount;
-		buffer.Read(out triangleIndexCount);
-		for (int i = 0; i < triangleIndexCount / 3; i++)
-		{
-			int i0;
-			buffer.Read(out i0);
-			int i1;
-			buffer.Read(out i1);
-			int i2;
-			buffer.Read(out i2);
-		}
+		//int boneBindingCount;
+		//buffer.Read(out boneBindingCount);
+		//for (int i = 0; i < boneBindingCount; i++)
+		//{
+		//	int i0;
+		//	buffer.Read(out i0);
+		//	int i1;
+		//	buffer.Read(out i1);
+		//	int i2;
+		//	buffer.Read(out i2);
+		//	int i3;
+		//	buffer.Read(out i3);
 
-		int boneBindingCount;
-		buffer.Read(out boneBindingCount);
-		for (int i = 0; i < boneBindingCount; i++)
-		{
-			int i0;
-			buffer.Read(out i0);
-			int i1;
-			buffer.Read(out i1);
-			int i2;
-			buffer.Read(out i2);
-			int i3;
-			buffer.Read(out i3);
+		//	float w0;
+		//	buffer.Read(out w0);
+		//	float w1;
+		//	buffer.Read(out w1);
+		//	float w2;
+		//	buffer.Read(out w2);
+		//	float w3;
+		//	buffer.Read(out w3);
+		//}
 
-			float w0;
-			buffer.Read(out w0);
-			float w1;
-			buffer.Read(out w1);
-			float w2;
-			buffer.Read(out w2);
-			float w3;
-			buffer.Read(out w3);
-		}
+		//int boneCount;
+		//buffer.Read(out boneCount);
+		//for (int i = 0; i < boneCount; i++)
+		//{
+		//	float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
 
-		int boneCount;
-		buffer.Read(out boneCount);
-		for (int i = 0; i < boneCount; i++)
-		{
-			float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
+		//	buffer.Read(out f0);
+		//	buffer.Read(out f1);
+		//	buffer.Read(out f2);
+		//	buffer.Read(out f3);
 
-			buffer.Read(out f0);
-			buffer.Read(out f1);
-			buffer.Read(out f2);
-			buffer.Read(out f3);
+		//	buffer.Read(out f4);
+		//	buffer.Read(out f5);
+		//	buffer.Read(out f6);
+		//	buffer.Read(out f7);
 
-			buffer.Read(out f4);
-			buffer.Read(out f5);
-			buffer.Read(out f6);
-			buffer.Read(out f7);
+		//	buffer.Read(out f8);
+		//	buffer.Read(out f9);
+		//	buffer.Read(out f10);
+		//	buffer.Read(out f11);
 
-			buffer.Read(out f8);
-			buffer.Read(out f9);
-			buffer.Read(out f10);
-			buffer.Read(out f11);
-
-			buffer.Read(out f12);
-			buffer.Read(out f13);
-			buffer.Read(out f14);
-			buffer.Read(out f15);
-		}
+		//	buffer.Read(out f12);
+		//	buffer.Read(out f13);
+		//	buffer.Read(out f14);
+		//	buffer.Read(out f15);
+		//}
 
 		//float cx, cy, cz;
 		//buffer.Read(out cx);
@@ -428,134 +424,132 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			}
 		}
 
-		//buffer.Write(Encoding.UTF8.GetBytes(localPath));
+		//int vertCount = verts.Count;
+		//buffer.Write(ref vertCount);
+		////UniLog.Log($"Writing {vertCount * 3} vertex values to the buffer");
+		//foreach (var vert in verts)
+		//{
+		//	float x = vert.x;
+		//	buffer.Write(ref x);
+		//	float y = vert.y;
+		//	buffer.Write(ref y);
+		//	float z = vert.z;
+		//	buffer.Write(ref z);
+		//}
 
-		int vertCount = verts.Count;
-		buffer.Write(ref vertCount);
-		//UniLog.Log($"Writing {vertCount * 3} vertex values to the buffer");
-		foreach (var vert in verts)
-		{
-			float x = vert.x;
-			buffer.Write(ref x);
-			float y = vert.y;
-			buffer.Write(ref y);
-			float z = vert.z;
-			buffer.Write(ref z);
-		}
+		//int normalCount = normals.Count;
+		//buffer.Write(ref normalCount);
+		//foreach (var normal in normals)
+		//{
+		//	float x = normal.x;
+		//	buffer.Write(ref x);
+		//	float y = normal.y;
+		//	buffer.Write(ref y);
+		//	float z = normal.z;
+		//	buffer.Write(ref z);
+		//}
 
-		int normalCount = normals.Count;
-		buffer.Write(ref normalCount);
-		foreach (var normal in normals)
-		{
-			float x = normal.x;
-			buffer.Write(ref x);
-			float y = normal.y;
-			buffer.Write(ref y);
-			float z = normal.z;
-			buffer.Write(ref z);
-		}
+		//int tangentCount = tangents.Count;
+		//buffer.Write(ref tangentCount);
+		//foreach (var tangent in tangents)
+		//{
+		//	float x = tangent.x;
+		//	buffer.Write(ref x);
+		//	float y = tangent.y;
+		//	buffer.Write(ref y);
+		//	float z = tangent.z;
+		//	buffer.Write(ref z);
+		//	float w = tangent.w;
+		//	buffer.Write(ref w);
+		//}
 
-		int tangentCount = tangents.Count;
-		buffer.Write(ref tangentCount);
-		foreach (var tangent in tangents)
-		{
-			float x = tangent.x;
-			buffer.Write(ref x);
-			float y = tangent.y;
-			buffer.Write(ref y);
-			float z = tangent.z;
-			buffer.Write(ref z);
-			float w = tangent.w;
-			buffer.Write(ref w);
-		}
+		//int colorCount = colors.Count;
+		//buffer.Write(ref colorCount);
+		//foreach (var color in colors)
+		//{
+		//	float r = color.r;
+		//	buffer.Write(ref r);
+		//	float g = color.g;
+		//	buffer.Write(ref g);
+		//	float b = color.b;
+		//	buffer.Write(ref b);
+		//	float a = color.a;
+		//	buffer.Write(ref a);
+		//}
 
-		int colorCount = colors.Count;
-		buffer.Write(ref colorCount);
-		foreach (var color in colors)
-		{
-			float r = color.r;
-			buffer.Write(ref r);
-			float g = color.g;
-			buffer.Write(ref g);
-			float b = color.b;
-			buffer.Write(ref b);
-			float a = color.a;
-			buffer.Write(ref a);
-		}
+		//int triangleIndexCount = triangleIndices.Count;
+		//buffer.Write(ref triangleIndexCount);
+		//foreach (var idx in triangleIndices)
+		//{
+		//	int idx2 = idx;
+		//	buffer.Write(ref idx2);
+		//}
 
-		int triangleIndexCount = triangleIndices.Count;
-		buffer.Write(ref triangleIndexCount);
-		foreach (var idx in triangleIndices)
-		{
-			int idx2 = idx;
-			buffer.Write(ref idx2);
-		}
+		//int boneBindingCount = boneBindings.Count;
+		//buffer.Write(ref boneBindingCount);
+		//foreach (var boneBinding in boneBindings)
+		//{
+		//	int i0 = boneBinding.boneIndex0;
+		//	buffer.Write(ref i0);
+		//	int i1 = boneBinding.boneIndex1;
+		//	buffer.Write(ref i1);
+		//	int i2 = boneBinding.boneIndex2;
+		//	buffer.Write(ref i2);
+		//	int i3 = boneBinding.boneIndex3;
+		//	buffer.Write(ref i3);
 
-		int boneBindingCount = boneBindings.Count;
-		buffer.Write(ref boneBindingCount);
-		foreach (var boneBinding in boneBindings)
-		{
-			int i0 = boneBinding.boneIndex0;
-			buffer.Write(ref i0);
-			int i1 = boneBinding.boneIndex1;
-			buffer.Write(ref i1);
-			int i2 = boneBinding.boneIndex2;
-			buffer.Write(ref i2);
-			int i3 = boneBinding.boneIndex3;
-			buffer.Write(ref i3);
+		//	float w0 = boneBinding.weight0;
+		//	buffer.Write(ref w0);
+		//	float w1 = boneBinding.weight1;
+		//	buffer.Write(ref w1);
+		//	float w2 = boneBinding.weight2;
+		//	buffer.Write(ref w2);
+		//	float w3 = boneBinding.weight3;
+		//	buffer.Write(ref w3);
+		//}
 
-			float w0 = boneBinding.weight0;
-			buffer.Write(ref w0);
-			float w1 = boneBinding.weight1;
-			buffer.Write(ref w1);
-			float w2 = boneBinding.weight2;
-			buffer.Write(ref w2);
-			float w3 = boneBinding.weight3;
-			buffer.Write(ref w3);
-		}
+		//int boneCount = bones.Count;
+		//buffer.Write(ref boneCount);
+		//foreach (var bone in bones)
+		//{
+		//	float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
 
-		int boneCount = bones.Count;
-		buffer.Write(ref boneCount);
-		foreach (var bone in bones)
-		{
-			float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
+		//	f0 = bone.BindPose.m00;
+		//	buffer.Write(ref f0);
+		//	f1 = bone.BindPose.m01;
+		//	buffer.Write(ref f1);
+		//	f2 = bone.BindPose.m02;
+		//	buffer.Write(ref f2);
+		//	f3 = bone.BindPose.m03;
+		//	buffer.Write(ref f3);
 
-			f0 = bone.BindPose.m00;
-			buffer.Write(ref f0);
-			f1 = bone.BindPose.m01;
-			buffer.Write(ref f1);
-			f2 = bone.BindPose.m02;
-			buffer.Write(ref f2);
-			f3 = bone.BindPose.m03;
-			buffer.Write(ref f3);
+		//	f4 = bone.BindPose.m10;
+		//	buffer.Write(ref f4);
+		//	f5 = bone.BindPose.m11;
+		//	buffer.Write(ref f5);
+		//	f6 = bone.BindPose.m12;
+		//	buffer.Write(ref f6);
+		//	f7 = bone.BindPose.m13;
+		//	buffer.Write(ref f7);
 
-			f4 = bone.BindPose.m10;
-			buffer.Write(ref f4);
-			f5 = bone.BindPose.m11;
-			buffer.Write(ref f5);
-			f6 = bone.BindPose.m12;
-			buffer.Write(ref f6);
-			f7 = bone.BindPose.m13;
-			buffer.Write(ref f7);
+		//	f8 = bone.BindPose.m20;
+		//	buffer.Write(ref f8);
+		//	f9 = bone.BindPose.m21;
+		//	buffer.Write(ref f9);
+		//	f10 = bone.BindPose.m22;
+		//	buffer.Write(ref f10);
+		//	f11 = bone.BindPose.m23;
+		//	buffer.Write(ref f11);
 
-			f8 = bone.BindPose.m20;
-			buffer.Write(ref f8);
-			f9 = bone.BindPose.m21;
-			buffer.Write(ref f9);
-			f10 = bone.BindPose.m22;
-			buffer.Write(ref f10);
-			f11 = bone.BindPose.m23;
-			buffer.Write(ref f11);
-
-			f12 = bone.BindPose.m30;
-			buffer.Write(ref f12);
-			f13 = bone.BindPose.m31;
-			buffer.Write(ref f13);
-			f14 = bone.BindPose.m32;
-			buffer.Write(ref f14);
-			f15 = bone.BindPose.m33;
-			buffer.Write(ref f15);
-		}
+		//	f12 = bone.BindPose.m30;
+		//	buffer.Write(ref f12);
+		//	f13 = bone.BindPose.m31;
+		//	buffer.Write(ref f13);
+		//	f14 = bone.BindPose.m32;
+		//	buffer.Write(ref f14);
+		//	f15 = bone.BindPose.m33;
+		//	buffer.Write(ref f15);
+		//}
 
 		//float cx, cy, cz;
 		//cx = bounds.Center.x;

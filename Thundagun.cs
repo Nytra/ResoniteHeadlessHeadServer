@@ -188,6 +188,6 @@ public enum PacketTypes
 	DestroyWorld,
 	ApplyChangesMeshRenderer,
 	DestroyMeshRenderer,
-	LoadFromFileShader
-	//ApplyChangesMesh
+	LoadFromFileShader,
+	ApplyChangesMesh
 }

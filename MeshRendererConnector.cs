@@ -53,7 +53,7 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 		var elem = Owner.Mesh.Asset?.Owner as IWorldElement;
 		var localPath = Owner.Mesh.Asset?.AssetURL?.LocalPath ?? "NULL";
 		if (elem is null && localPath == "NULL") return;
-		OwnerId = (elem?.ReferenceID.Position ?? default) + (elem?.ReferenceID.User ?? default);
+		OwnerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		LocalPath = localPath;
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 		//cb();
@@ -100,7 +100,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 	public ApplyChangesMeshRendererConnector(MeshRendererConnectorBase<T> owner) : base(owner)
 	{
-		slotRefId = owner.Owner.Slot.ReferenceID.Position + owner.Owner.Slot.ReferenceID.User;
+		slotRefId = (owner.Owner.Slot.ReferenceID.Position << 8) | (owner.Owner.Slot.ReferenceID.User & 0xFFul);
 		worldId = owner.Owner.World.LocalWorldHandle;
 		isSkinned = owner.Owner is SkinnedMeshRenderer;
 		var asset = owner.Owner.Material.Target?.Asset;
@@ -129,7 +129,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			foreach (var bone in skinned!.Bones)
 			{
 				if (bone == null) continue;
-				boneRefIds.Add(bone.ReferenceID.Position + bone.ReferenceID.User);
+				boneRefIds.Add((bone.ReferenceID.Position << 8) | (bone.ReferenceID.User & 0xFFul));
 			}
 		}
 

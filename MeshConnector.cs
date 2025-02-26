@@ -57,9 +57,9 @@ public class MeshConnector : IMeshConnector
 		Mesh = meshx;
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
 		LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
-		var elem = Asset.Owner as IWorldElement;
+		var elem = Asset?.Owner as IWorldElement;
 		if (elem is null && LocalPath == "NULL") return;
-		ownerId = (elem?.ReferenceID.Position ?? default) + (elem?.ReferenceID.User ?? default);
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		Bounds = bounds;
 		Hint = uploadHint;
 		

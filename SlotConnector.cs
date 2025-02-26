@@ -17,14 +17,14 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 
 	public override void Initialize()
 	{
-		RefID = Owner.ReferenceID.Position + Owner.ReferenceID.User;
+		RefID = (Owner.ReferenceID.Position << 8) | (Owner.ReferenceID.User & 0xFFul);
 		WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 
 	public override void ApplyChanges()
 	{
-		RefID = Owner.ReferenceID.Position + Owner.ReferenceID.User;
+		RefID = (Owner.ReferenceID.Position << 8) | (Owner.ReferenceID.User & 0xFFul);
 		WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
@@ -78,7 +78,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		Scale = o.Scale_Field.Value;
 		ScaleChanged = o.Scale_Field.GetWasChangedAndClear();
 		RefId = owner.RefID;
-		ParentRefId = o.Parent?.ReferenceID.Position + o.Parent?.ReferenceID.User ?? default;
+		ParentRefId = ((o.Parent?.ReferenceID.Position ?? default) << 8) | ((o.Parent?.ReferenceID.User ?? default) & 0xFFul);
 		HasParent = parent != null;
 		IsRootSlot = o.IsRootSlot;
 		IsLocalElement = o.IsLocalElement;
@@ -211,7 +211,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		var bytes = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes);
-		SlotName = Encoding.UTF8.GetString(bytes).Trim();
+		SlotName = Encoding.UTF8.GetString(bytes);
 
 		buffer.Read(out WorldId);
 

@@ -39,6 +39,7 @@ public class MeshConnector : IMeshConnector
 	public BoundingBox Bounds;
 	public MeshUploadHint Hint;
 	public bool firstRender = true;
+	public ulong ownerId;
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
@@ -56,10 +57,13 @@ public class MeshConnector : IMeshConnector
 		Mesh = meshx;
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
 		LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		var elem = Asset.Owner as IWorldElement;
+		if (elem is null && LocalPath == "NULL") return;
+		ownerId = (elem?.ReferenceID.Position ?? default) + (elem?.ReferenceID.User ?? default);
 		Bounds = bounds;
 		Hint = uploadHint;
-		if (LocalPath == "NULL") return;
-		UniLog.Log("UpdateMeshConnector: " + LocalPath);
+		
+		UniLog.Log($"UpdateMeshConnector: {ownerId.ToString()} {Asset?.AssetURL?.LocalPath ?? "NULL"}");
 		Thundagun.QueuePacket(new ApplyChangesMeshConnector(this));
 		onUpdated(firstRender);
 		firstRender = false;
@@ -111,10 +115,12 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 	List<Bone> bones = new();
 	List<BlendShapeFrame> blendShapeFrames = new();
 	string localPath;
+	ulong ownerId;
 	BoundingBox bounds;
 	public ApplyChangesMeshConnector(MeshConnector owner) : base(owner)
 	{
 		localPath = owner.LocalPath;
+		ownerId = owner.ownerId;
 		MeshX mesh = owner.Mesh;
 		bounds = owner.Bounds;
 		if (mesh != null)
@@ -201,6 +207,8 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes2);
 		localPath = Encoding.UTF8.GetString(bytes2);
+
+		buffer.Read(out ownerId);
 
 		int vertCount;
 		buffer.Read(out vertCount);
@@ -376,6 +384,8 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 	public override void Serialize(CircularBuffer buffer)
 	{
 		buffer.Write(Encoding.UTF8.GetBytes(localPath));
+
+		buffer.Write(ref ownerId);
 
 		int vertCount = verts.Count;
 		buffer.Write(ref vertCount);

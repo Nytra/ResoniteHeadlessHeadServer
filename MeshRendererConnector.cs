@@ -8,6 +8,8 @@ namespace Thundagun;
 
 public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 {
+	public ulong OwnerId;
+	public string LocalPath;
 	public override void ApplyChanges()
 	{
 		//if (Owner.Mesh.Asset is null) return;
@@ -48,8 +50,11 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 		//	}
 		//}
 
-		if (Owner.Mesh.Asset?.AssetURL?.LocalPath is null) return;
-
+		var elem = Owner.Mesh.Asset?.Owner as IWorldElement;
+		var localPath = Owner.Mesh.Asset?.AssetURL?.LocalPath ?? "NULL";
+		if (elem is null && localPath == "NULL") return;
+		OwnerId = (elem?.ReferenceID.Position ?? default) + (elem?.ReferenceID.User ?? default);
+		LocalPath = localPath;
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 		//cb();
 	}
@@ -61,7 +66,7 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 
 	public override void Initialize()
 	{
-		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
+		//Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 	}
 }
 
@@ -81,6 +86,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 	bool isSkinned;
 	List<ulong> boneRefIds = new();
 	string meshPath;
+	ulong ownerId;
 
 	//List<float3> verts = new();
 	//List<float3> normals = new();
@@ -99,10 +105,11 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		isSkinned = owner.Owner is SkinnedMeshRenderer;
 		var asset = owner.Owner.Material.Target?.Asset;
 		shaderPath = "NULL";
-		meshPath = owner.Owner.Mesh.Asset?.AssetURL?.LocalPath ?? "NULL";
+		ownerId = owner.OwnerId;
+		meshPath = owner.LocalPath;
 		meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
 
-		//UniLog.Log($"ApplyChangesMeshRenderer: {meshPath}");
+		UniLog.Log($"ApplyChangesMeshRenderer: {meshPath}");
 
 		var matprovider = asset?.Owner as MaterialProvider;
 		if (matprovider != null)
@@ -220,6 +227,8 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		var bytes3 = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes3);
 		meshPath = Encoding.UTF8.GetString(bytes3);
+
+		buffer.Read(out ownerId);
 
 		if (isSkinned)
 		{
@@ -412,6 +421,8 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		buffer.Write(Encoding.UTF8.GetBytes(shaderPath));
 
 		buffer.Write(Encoding.UTF8.GetBytes(meshPath));
+
+		buffer.Write(ref ownerId);
 
 		if (isSkinned)
 		{

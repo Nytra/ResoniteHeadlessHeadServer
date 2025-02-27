@@ -334,51 +334,51 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		buffer.Read(out sy);
 		buffer.Read(out sz);
 
-		//int blendShapeFrameCount;
-		//buffer.Read(out blendShapeFrameCount);
-		//for (int i = 0; i < blendShapeFrameCount; i++)
-		//{
-		//	string name;
-		//	var bytes3 = new byte[Thundagun.MAX_STRING_LENGTH];
-		//	buffer.Read(bytes3);
-		//	name = Encoding.UTF8.GetString(bytes3);
+		int blendShapeFrameCount;
+		buffer.Read(out blendShapeFrameCount);
+		for (int i = 0; i < blendShapeFrameCount; i++)
+		{
+			string name;
+			var bytes3 = new byte[Thundagun.MAX_STRING_LENGTH];
+			buffer.Read(bytes3);
+			name = Encoding.UTF8.GetString(bytes3);
 
-		//	float weight;
-		//	buffer.Read(out weight);
+			float weight;
+			buffer.Read(out weight);
 
-		//	int positionsCount;
-		//	buffer.Read(out positionsCount);
-		//	//var positions = new float[positionsCount];
-		//	for (int i2 = 0; i2 < positionsCount / 3; i2++)
-		//	{
-		//		float px,py,pz;
-		//		buffer.Read(out px);
-		//		buffer.Read(out py);
-		//		buffer.Read(out pz);
-		//	}
+			int positionsCount;
+			buffer.Read(out positionsCount);
+			//var positions = new float[positionsCount];
+			for (int i2 = 0; i2 < positionsCount; i2++)
+			{
+				float px, py, pz;
+				buffer.Read(out px);
+				buffer.Read(out py);
+				buffer.Read(out pz);
+			}
 
-		//	int normalsCount;
-		//	buffer.Read(out normalsCount);
-		//	//var normals = new float[normalsCount];
-		//	for (int i2 = 0; i2 < normalsCount / 3; i2 ++)
-		//	{
-		//		float px, py, pz;
-		//		buffer.Read(out px);
-		//		buffer.Read(out py);
-		//		buffer.Read(out pz);
-		//	}
+			int normalsCount;
+			buffer.Read(out normalsCount);
+			//var normals = new float[normalsCount];
+			for (int i2 = 0; i2 < normalsCount; i2++)
+			{
+				float nx, ny, nz;
+				buffer.Read(out nx);
+				buffer.Read(out ny);
+				buffer.Read(out nz);
+			}
 
-		//	int tangentsCount;
-		//	buffer.Read(out tangentsCount);
-		//	//var tangents = new float[tangentsCount];
-		//	for (int i2 = 0; i2 < tangentsCount / 3; i2 ++)
-		//	{
-		//		float px, py, pz;
-		//		buffer.Read(out px);
-		//		buffer.Read(out py);
-		//		buffer.Read(out pz);
-		//	}
-		//}
+			int tangentsCount;
+			buffer.Read(out tangentsCount);
+			//var tangents = new float[tangentsCount];
+			for (int i2 = 0; i2 < tangentsCount; i2++)
+			{
+				float tx, ty, tz;
+				buffer.Read(out tx);
+				buffer.Read(out ty);
+				buffer.Read(out tz);
+			}
+		}
 	}
 
 	public override void Serialize(CircularBuffer buffer)
@@ -530,58 +530,82 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		buffer.Write(ref sy);
 		buffer.Write(ref sz);
 
-		//int blendShapeFrameCount = blendShapeFrames.Count;
-		//buffer.Write(ref blendShapeFrameCount);
-		//foreach (var blendShapeFrame in blendShapeFrames)
-		//{
-		//	string name = blendShapeFrame.BlendShape.Name;
-		//	name = name.Substring(0, Math.Min(name.Length, Thundagun.MAX_STRING_LENGTH));
-		//	buffer.Write(Encoding.UTF8.GetBytes(name));
+		int blendShapeFrameCount = blendShapeFrames.Count;
+		buffer.Write(ref blendShapeFrameCount);
+		foreach (var blendShapeFrame in blendShapeFrames)
+		{
+			string name = blendShapeFrame.BlendShape.Name ?? "NULL";
+			name = name.Substring(0, Math.Min(name.Length, Thundagun.MAX_STRING_LENGTH));
+			buffer.Write(Encoding.UTF8.GetBytes(name));
 
-		//	float weight = blendShapeFrame.Weight;
-		//	buffer.Write(ref weight);
+			float weight = blendShapeFrame.Weight;
+			buffer.Write(ref weight);
 
-		//	int positionsCount = blendShapeFrame.RawPositions.Count();
-		//	buffer.Write(ref positionsCount);
-		//	//var positions = new float[positionsCount];
+			if (blendShapeFrame.RawPositions != null)
+			{
+				int positionsCount = blendShapeFrame.RawPositions.Length;
+				buffer.Write(ref positionsCount);
+				//var positions = new float[positionsCount];
 
-		//	foreach (var pos in blendShapeFrame.RawPositions)
-		//	{
-		//		float px = pos.x;
-		//		float py = pos.y;
-		//		float pz = pos.z;
-		//		buffer.Write(ref px);
-		//		buffer.Write(ref py); 
-		//		buffer.Write(ref pz);
-		//	}
+				foreach (var pos in blendShapeFrame.RawPositions)
+				{
+					float px = pos.x;
+					float py = pos.y;
+					float pz = pos.z;
+					buffer.Write(ref px);
+					buffer.Write(ref py);
+					buffer.Write(ref pz);
+				}
+			}
+			else
+			{
+				int positionsCount = 0;
+				buffer.Write(ref positionsCount);
+			}
 
-		//	int normalsCount = blendShapeFrame.RawNormals.Count();
-		//	buffer.Write(ref normalsCount);
-		//	//var normals = new float[normalsCount];
+			if (blendShapeFrame.RawNormals != null)
+			{
+				int normalsCount = blendShapeFrame.RawNormals.Length;
+				buffer.Write(ref normalsCount);
+				//var normals = new float[normalsCount];
 
-		//	foreach (var norm in blendShapeFrame.RawNormals)
-		//	{
-		//		float nx = norm.x;
-		//		float ny = norm.y;
-		//		float nz = norm.z;
-		//		buffer.Write(ref nx);
-		//		buffer.Write(ref ny);
-		//		buffer.Write(ref nz);
-		//	}
+				foreach (var norm in blendShapeFrame.RawNormals)
+				{
+					float nx = norm.x;
+					float ny = norm.y;
+					float nz = norm.z;
+					buffer.Write(ref nx);
+					buffer.Write(ref ny);
+					buffer.Write(ref nz);
+				}
+			}
+			else
+			{
+				int normalsCount = 0;
+				buffer.Write(ref normalsCount);
+			}
 
-		//	int tangentsCount = blendShapeFrame.RawTangents.Count();
-		//	buffer.Write(ref tangentsCount);
-		//	//var tangents = new float[tangentsCount];
+			if (blendShapeFrame.RawTangents != null)
+			{
+				int tangentsCount = blendShapeFrame.RawTangents.Length;
+				buffer.Write(ref tangentsCount);
+				//var tangents = new float[tangentsCount];
 
-		//	foreach (var tang in blendShapeFrame.RawTangents)
-		//	{
-		//		float tx = tang.x;
-		//		float ty = tang.y;
-		//		float tz = tang.z;
-		//		buffer.Write(ref tx);
-		//		buffer.Write(ref ty);
-		//		buffer.Write(ref tz);
-		//	}
-		//}
+				foreach (var tang in blendShapeFrame.RawTangents)
+				{
+					float tx = tang.x;
+					float ty = tang.y;
+					float tz = tang.z;
+					buffer.Write(ref tx);
+					buffer.Write(ref ty);
+					buffer.Write(ref tz);
+				}
+			}
+			else
+			{
+				int tangentsCount = 0;
+				buffer.Write(ref tangentsCount);
+			}
+		}
 	}
 }

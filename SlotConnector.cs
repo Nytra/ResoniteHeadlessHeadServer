@@ -24,8 +24,8 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 
 	public override void ApplyChanges()
 	{
-		RefID = (Owner.ReferenceID.Position << 8) | (Owner.ReferenceID.User & 0xFFul);
-		WorldId = Owner.World.LocalWorldHandle;
+		//RefID = (Owner.ReferenceID.Position << 8) | (Owner.ReferenceID.User & 0xFFul);
+		//WorldId = Owner.World.LocalWorldHandle;
 		Thundagun.QueuePacket(new ApplyChangesSlotConnector(this));
 	}
 

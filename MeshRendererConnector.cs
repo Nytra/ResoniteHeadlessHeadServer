@@ -87,6 +87,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 	List<ulong> boneRefIds = new();
 	string meshPath;
 	ulong ownerId;
+	List<float> blendShapeWeights = new();
 
 	//List<float3> verts = new();
 	//List<float3> normals = new();
@@ -109,7 +110,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		meshPath = owner.LocalPath;
 		meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
 
-		UniLog.Log($"ApplyChangesMeshRenderer: {meshPath}");
+		UniLog.Log($"ApplyChangesMeshRenderer: {ownerId} {meshPath}");
 
 		var matprovider = asset?.Owner as MaterialProvider;
 		if (matprovider != null)
@@ -128,8 +129,19 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			var skinned = owner.Owner as SkinnedMeshRenderer;
 			foreach (var bone in skinned!.Bones)
 			{
-				if (bone == null) continue;
-				boneRefIds.Add((bone.ReferenceID.Position << 8) | (bone.ReferenceID.User & 0xFFul));
+				if (bone == null)
+				{
+					boneRefIds.Add(default);
+				}
+				else
+				{
+					boneRefIds.Add((bone.ReferenceID.Position << 8) | (bone.ReferenceID.User & 0xFFul));
+				}
+			}
+
+			foreach (var blendShapeWeight in skinned.BlendShapeWeights)
+			{
+				blendShapeWeights.Add(blendShapeWeight);
 			}
 		}
 
@@ -238,6 +250,14 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			{
 				ulong refId;
 				buffer.Read(out refId);
+			}
+
+			int blendShapeWeightCount;
+			buffer.Read(out blendShapeWeightCount);
+			for (int i = 0; i < blendShapeWeightCount; i++)
+			{
+				float weight;
+				buffer.Read(out weight);
 			}
 		}
 
@@ -432,6 +452,14 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			{
 				ulong refId = boneRefId;
 				buffer.Write(ref refId);
+			}
+
+			int blendShapeWeightCount = blendShapeWeights.Count;
+			buffer.Write(ref blendShapeWeightCount);
+			foreach (var blendShapeWeight in blendShapeWeights)
+			{
+				float weight = blendShapeWeight;
+				buffer.Write(ref weight);
 			}
 		}
 

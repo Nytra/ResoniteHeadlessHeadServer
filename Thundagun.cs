@@ -58,9 +58,9 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 128); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 256); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
-		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 128);
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 256);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -117,29 +117,46 @@ public class Thundagun
 	{
 		while (true)
 		{
-			if (packets.Count > 0)
+			try
 			{
-				Queue<PacketStruct> copy;
-				lock (packets)
+				if (packets.Count > 0)
 				{
-					copy = new Queue<PacketStruct>(packets);
-					packets.Clear();
-				}
-				while (copy.Count > 0)
-				{
-					var packetStruct = copy.Dequeue();
-					var num = packetStruct.packet.Id;
-					buffer.Write(ref num);
-					packetStruct.packet.Serialize(buffer);
-					try
+					Queue<PacketStruct> copy;
+					lock (packets)
 					{
-						packetStruct.callback?.Invoke();
+						copy = new Queue<PacketStruct>(packets);
+						packets.Clear();
 					}
-					catch (Exception e)
+					while (copy.Count > 0)
 					{
-						UniLog.Error($"Exception running packet queue callback: {e}");
+						var packetStruct = copy.Dequeue();
+						var num = packetStruct.packet.Id;
+						buffer.Write(ref num);
+						try
+						{
+							packetStruct.packet.Serialize(buffer);
+						}
+						catch (Exception e)
+						{
+							UniLog.Error($"Exception during serialization: {e}");
+							//throw;
+						}
+						try
+						{
+							packetStruct.callback?.Invoke();
+						}
+						catch (Exception e)
+						{
+							UniLog.Error($"Exception running packet queue callback: {e}");
+							//throw;
+						}
 					}
 				}
+			}
+			catch (Exception e)
+			{
+				UniLog.Error($"Exception running packet task: {e}");
+				//throw;
 			}
 			//int n;
 			//returnBuffer.Read(out n); // halt until the client sends data in this buffer

@@ -194,7 +194,7 @@ public interface IUpdatePacket
 
 public enum PacketTypes
 {
-	Sync,
+	None,
 	ApplyChangesSlot,
 	DestroySlot,
 	InitializeWorld,

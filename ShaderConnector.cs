@@ -24,6 +24,7 @@ public class ShaderConnector : IShaderConnector
 	{
 		UniLog.Log($"Loading shader: {file}");
 		File = file ?? "NULL";
+		if (File == "NULL") return;
 		Thundagun.QueuePacket(new LoadFromFileShaderConnector(this));
 		onLoaded(true);
 	}

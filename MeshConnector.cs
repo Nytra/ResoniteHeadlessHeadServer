@@ -39,7 +39,7 @@ public class MeshConnector : IMeshConnector
 		Bounds = bounds;
 		Hint = uploadHint;
 		
-		UniLog.Log($"UpdateMeshConnector: {ownerId.ToString()} {Asset?.AssetURL?.LocalPath ?? "NULL"}");
+		//UniLog.Log($"UpdateMeshConnector: {ownerId.ToString()} {Asset?.AssetURL?.LocalPath ?? "NULL"}");
 		Thundagun.QueuePacket(new ApplyChangesMeshConnector(this));
 		onUpdated(firstRender);
 		firstRender = false;

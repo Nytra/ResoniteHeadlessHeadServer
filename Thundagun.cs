@@ -139,7 +139,6 @@ public class Thundagun
 						catch (Exception e)
 						{
 							UniLog.Error($"Exception during serialization: {e}");
-							//throw;
 						}
 						try
 						{
@@ -148,7 +147,6 @@ public class Thundagun
 						catch (Exception e)
 						{
 							UniLog.Error($"Exception running packet queue callback: {e}");
-							//throw;
 						}
 					}
 				}
@@ -156,7 +154,6 @@ public class Thundagun
 			catch (Exception e)
 			{
 				UniLog.Error($"Exception running packet task: {e}");
-				//throw;
 			}
 			//int n;
 			//returnBuffer.Read(out n); // halt until the client sends data in this buffer

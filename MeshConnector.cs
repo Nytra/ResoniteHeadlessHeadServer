@@ -1,34 +1,10 @@
 ﻿using Elements.Assets;
 using Elements.Core;
 using FrooxEngine;
-using FrooxEngine.UIX;
 using SharedMemory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Thundagun;
-
-//public class MeshUpdateTracker
-//{
-//	public static HashSet<Asset> changedMeshes = new();
-//	public static Dictionary<Asset, List<MeshRenderer>> assetToRenderers = new();
-//	public static Dictionary<Asset, MeshConnector> assetToConnector = new();
-
-//	public static void MeshChanged(Asset asset)
-//	{
-//		lock (changedMeshes)
-//		{
-//			if (!changedMeshes.Contains(asset))
-//			{
-//				changedMeshes.Add(asset);
-//			}
-//		}
-//	}
-//}
 
 public class MeshConnector : IMeshConnector
 {
@@ -67,42 +43,8 @@ public class MeshConnector : IMeshConnector
 		Thundagun.QueuePacket(new ApplyChangesMeshConnector(this));
 		onUpdated(firstRender);
 		firstRender = false;
-
-		// jank below
-
-		//void cb()
-		//{
-		//	lock (MeshUpdateTracker.changedMeshes)
-		//	{
-		//		MeshUpdateTracker.changedMeshes.Remove(Asset);
-		//	}
-		//}
-		//onUpdated(firstRender);
-		//if (MeshUpdateTracker.assetToRenderers.TryGetValue(Asset, out var renderers))
-		//{
-		//	foreach (var renderer in renderers)
-		//	{
-		//		if (renderer.FilterWorldElement() == null) continue;
-		//		if (renderer.Mesh?.Asset != Asset) return;
-		//		//renderer.MarkChangeDirty();
-		//		if (renderer is SkinnedMeshRenderer skinned)
-		//		{
-		//			Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<SkinnedMeshRenderer>(skinned.Connector as MeshRendererConnectorBase<SkinnedMeshRenderer>), callback: cb);
-		//		}
-		//		else if (renderer is MeshRenderer rend)
-		//		{
-		//			Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<MeshRenderer>(rend.Connector as MeshRendererConnectorBase<MeshRenderer>), callback: cb);
-		//		}
-		//	}
-		//}
-		//firstRender = false;
 	}
 }
-
-//public class UpdateMeshDataCallback
-//{
-
-//}
 
 public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 {
@@ -348,7 +290,6 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 
 			int positionsCount;
 			buffer.Read(out positionsCount);
-			//var positions = new float[positionsCount];
 			for (int i2 = 0; i2 < positionsCount; i2++)
 			{
 				float px, py, pz;
@@ -359,7 +300,6 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 
 			int normalsCount;
 			buffer.Read(out normalsCount);
-			//var normals = new float[normalsCount];
 			for (int i2 = 0; i2 < normalsCount; i2++)
 			{
 				float nx, ny, nz;
@@ -370,7 +310,6 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 
 			int tangentsCount;
 			buffer.Read(out tangentsCount);
-			//var tangents = new float[tangentsCount];
 			for (int i2 = 0; i2 < tangentsCount; i2++)
 			{
 				float tx, ty, tz;
@@ -545,8 +484,6 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			{
 				int positionsCount = blendShapeFrame.RawPositions.Length;
 				buffer.Write(ref positionsCount);
-				//var positions = new float[positionsCount];
-
 				foreach (var pos in blendShapeFrame.RawPositions)
 				{
 					float px = pos.x;
@@ -567,8 +504,6 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			{
 				int normalsCount = blendShapeFrame.RawNormals.Length;
 				buffer.Write(ref normalsCount);
-				//var normals = new float[normalsCount];
-
 				foreach (var norm in blendShapeFrame.RawNormals)
 				{
 					float nx = norm.x;
@@ -589,8 +524,6 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			{
 				int tangentsCount = blendShapeFrame.RawTangents.Length;
 				buffer.Write(ref tangentsCount);
-				//var tangents = new float[tangentsCount];
-
 				foreach (var tang in blendShapeFrame.RawTangents)
 				{
 					float tx = tang.x;

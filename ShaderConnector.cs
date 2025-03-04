@@ -44,15 +44,15 @@ public class ShaderConnector : IShaderConnector
 		//}
 		//UniLog.Log($"Loading shader: {file}");
 		
-		Thundagun.QueuePacket(new LoadFromFileShaderConnector(this));
+		//Thundagun.QueuePacket(new LoadFromFileShaderConnector(this));
 		//shaders++;
-		if (!ShaderConnector.onLoadedActions.ContainsKey(File))
-		{
-			var list = new List<Action>();
-			list.Add(() => onLoaded(true));
-			lock (onLoadedActions)
-				onLoadedActions.Add(File, list);
-		}
+		//if (!ShaderConnector.onLoadedActions.ContainsKey(File))
+		//{
+			//var list = new List<Action>();
+			//list.Add(() => onLoaded(true));
+			//lock (onLoadedActions)
+				//onLoadedActions.Add(File, list);
+		//}
 		//else
 		//{
 		//	onLoadedActions[File].Add(() => onLoaded(true));
@@ -72,8 +72,7 @@ public class ShaderConnector : IShaderConnector
 		//	
 		//});
 
-		//onLoaded(true);
-		
+		onLoaded(true);
 	}
 
 	public void Unload()

@@ -10,7 +10,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 	public bool firstRender = true;
 	public string ShaderLocalPath;
 	public string ShaderFilePath;
-	public ulong ownerId;
+	
 	public Shader targetShader;
 	public static Queue<ApplyChangesMaterialConnector> queuedMaterialChanges = new();
 	public void ApplyChanges(Shader shader, AssetIntegrated onDone)
@@ -23,10 +23,8 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 			
 		});
 
-
-
 		targetShader = shader;
-
+		//UniLog.Log($"asset local path: {Asset?.AssetURL?.LocalPath ?? "NULL"} {Asset?.AssetURL?.ToString() ?? "NULL"} {Asset?.AssetURL?.OriginalString ?? "NULL"}");
 		ShaderLocalPath = targetShader?.AssetURL?.LocalPath ?? "NULL";
 		try
 		{
@@ -61,7 +59,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 
 		onDone(firstRender);
-		//firstRender = false;
+		firstRender = false;
 
 		//Thundagun.QueuePacket(new ApplyChangesMaterialConnector(this));
 

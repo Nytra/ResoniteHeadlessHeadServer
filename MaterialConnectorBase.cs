@@ -48,11 +48,16 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public RawValueList<float4x4> matrices = new();
 	public static Queue<MaterialConnectorBase> initializingProperties = new();
 	public static Queue<Action> onDoneActions = new();
+	public ulong ownerId;
 	//public AssetIntegrated onDone;
 	//public Action uploadMaterialAction;
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
+		//var owner = Asset?.Owner as IWorldElement;
+		//ownerId = ((owner?.ReferenceID.Position ?? default) << 8) | ((owner?.ReferenceID.User ?? default) & 0xFFul);
+		//var thing = new ApplyChangesMaterialConnector((MaterialConnector)this);
+		//Thundagun.QueuePacket(thing);
 	}
 
 	public void InitializeProperties(List<MaterialProperty> properties, Action onDone)

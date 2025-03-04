@@ -14,19 +14,66 @@ public class ShaderConnector : IShaderConnector
 {
 	public string File;
 	public string LocalPath;
+	public static Dictionary<string, List<Action>> onLoadedActions = new();
+	public static HashSet<string> loadedShaders = new();
+	public static int shader = 0;
+	public static bool allLoaded = false;
+	public static bool allLoadedFinal = false;
+	public static Dictionary<string, string> LocalPathToFile = new();
 	public void Initialize(Asset asset)
 	{
 		LocalPath = asset?.AssetURL?.LocalPath ?? "NULL";
+		//UniLog.Log($"Initialize shader: {LocalPath}");
 		//UniLog.Log($"ShaderInit: {LocalPath}");
 	}
 
 	public void LoadFromFile(string file, AssetIntegrated onLoaded)
 	{
-		UniLog.Log($"Loading shader: {file}");
 		File = file ?? "NULL";
-		if (File == "NULL") return;
+		//if (File == "NULL") 
+		//{
+			//onLoaded(true);
+			//return;
+		//}
+		LocalPathToFile[LocalPath] = File;
+
+		//if (File == "NULL") 
+		//{
+			//onLoaded(true);
+			//return;
+		//}
+		//UniLog.Log($"Loading shader: {file}");
+		
 		Thundagun.QueuePacket(new LoadFromFileShaderConnector(this));
-		onLoaded(true);
+		//shaders++;
+		if (!ShaderConnector.onLoadedActions.ContainsKey(File))
+		{
+			var list = new List<Action>();
+			list.Add(() => onLoaded(true));
+			lock (onLoadedActions)
+				onLoadedActions.Add(File, list);
+		}
+		//else
+		//{
+		//	onLoadedActions[File].Add(() => onLoaded(true));
+		//}
+		
+		//allLoaded = false;
+
+		//while (!loadedShaders.Contains(File))
+		//{
+			//Thread.Sleep(1);
+		//}
+
+		//onLoaded(true);
+
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(15, () => 
+		//{
+		//	
+		//});
+
+		//onLoaded(true);
+		
 	}
 
 	public void Unload()
@@ -62,5 +109,21 @@ public class LoadFromFileShaderConnector : UpdatePacket<ShaderConnector>
 		buffer.Write(Encoding.UTF8.GetBytes(File));
 
 		buffer.Write(Encoding.UTF8.GetBytes(LocalPath));
+	}
+}
+
+public class ShaderLoadedCallback : IUpdatePacket
+{
+	public string shaderPath;
+	public int Id => (int)PacketTypes.ShaderLoadedCallback;
+
+	public void Deserialize(CircularBuffer buffer)
+	{
+		buffer.ReadString(out shaderPath);
+	}
+
+	public void Serialize(CircularBuffer buffer)
+	{
+		buffer.WriteString(shaderPath);
 	}
 }

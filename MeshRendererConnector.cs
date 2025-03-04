@@ -1,5 +1,4 @@
-﻿using Elements.Assets;
-using Elements.Core;
+﻿using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
 using System.Text;
@@ -8,16 +7,24 @@ namespace Thundagun;
 
 public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 {
-	public ulong OwnerId;
-	public string LocalPath;
+	public ulong MeshCompId;
+	public string MeshLocalPath;
 	public override void ApplyChanges()
 	{
 		var elem = Owner.Mesh.Asset?.Owner as IWorldElement;
 		var localPath = Owner.Mesh.Asset?.AssetURL?.LocalPath ?? "NULL";
 		if (elem is null && localPath == "NULL") return;
-		OwnerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
-		LocalPath = localPath;
+		MeshCompId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+		MeshLocalPath = localPath;
+
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
+
+		Engine.Current.GlobalCoroutineManager.RunInSeconds(RandomX.Range(10) + 20, () =>
+		{
+			
+		});
+
+
 	}
 
 	public override void Destroy(bool destroyingWorld)
@@ -43,11 +50,13 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 {
 	ulong slotRefId;
 	long worldId;
-	string shaderPath;
+	string shaderFilePath;
+	string shaderLocalPath;
+	ulong matCompId;
 	bool isSkinned;
 	List<ulong> boneRefIds = new();
 	string meshPath;
-	ulong ownerId;
+	ulong meshCompId;
 	List<float> blendShapeWeights = new();
 
 	public ApplyChangesMeshRendererConnector(MeshRendererConnectorBase<T> owner) : base(owner)
@@ -56,25 +65,48 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		worldId = owner.Owner.World.LocalWorldHandle;
 		isSkinned = owner.Owner is SkinnedMeshRenderer;
 		var asset = owner.Owner.Material.Target?.Asset;
-		shaderPath = "NULL";
-		ownerId = owner.OwnerId;
-		meshPath = owner.LocalPath;
+		meshCompId = owner.MeshCompId;
+		meshPath = owner.MeshLocalPath;
 		meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
 
-		//UniLog.Log($"ApplyChangesMeshRenderer: {ownerId} {meshPath}");
+		shaderFilePath = "NULL";
+		shaderLocalPath = "NULL";
 
-		var matprovider = asset?.Owner as MaterialProvider;
+		var materialTarget = owner.Owner.Material.Target;
+		if (materialTarget != null)
+		{
+			matCompId = (materialTarget.ReferenceID.Position << 8) | (materialTarget.ReferenceID.User & 0xFFul);
+		}
+
+
+
+		//var matprovider = asset?.Owner as MaterialProvider;
+		var matprovider = materialTarget as MaterialProvider;
 		if (matprovider != null)
 		{
 			HashSet<StaticShader> hashset = matprovider.GetProviders<StaticShader>();
 			var shad = hashset.FirstOrDefault();
 			if (shad != null)
 			{
-				shaderPath = shad.Asset?.AssetURL?.LocalPath ?? "NULL";
-				shaderPath = shaderPath.Substring(0, Math.Min(shaderPath.Length, Thundagun.MAX_STRING_LENGTH));
-				//UniLog.Log($"StaticShader LocalPath: {shaderPath}");
+				var shaderPath = shad.Asset?.AssetURL?.LocalPath ?? "NULL";
+				shaderLocalPath = shaderPath;
+				shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+				try
+				{
+					shaderPath = ShaderConnector.LocalPathToFile[shaderPath];
+					shaderPath = shaderPath.Substring(0, Math.Min(shaderPath.Length, Thundagun.MAX_STRING_LENGTH));
+				}
+				catch (Exception e)
+				{
+					shaderPath = "NULL";
+				}
 			}
 		}
+
+		//UniLog.Log($"ApplyChangesMeshRenderer: {isSkinned} {matCompId} {meshCompId} {shaderPath} {meshPath}");
+
+		//UniLog.Log($"MeshRenderer First StaticShader LocalPath: {shaderPath}");
+		//UniLog.Log($"MeshRenderer MatCompId: {matCompId}");
 		if (isSkinned)
 		{
 			var skinned = owner.Owner as SkinnedMeshRenderer;
@@ -107,13 +139,19 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes2);
-		shaderPath = Encoding.UTF8.GetString(bytes2);
+		shaderFilePath = Encoding.UTF8.GetString(bytes2);
+
+		var bytes4 = new byte[Thundagun.MAX_STRING_LENGTH];
+		buffer.Read(bytes4);
+		shaderLocalPath = Encoding.UTF8.GetString(bytes4);
+
+		buffer.Read(out matCompId);
 
 		var bytes3 = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes3);
 		meshPath = Encoding.UTF8.GetString(bytes3);
 
-		buffer.Read(out ownerId);
+		buffer.Read(out meshCompId);
 
 		if (isSkinned)
 		{
@@ -141,11 +179,15 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		buffer.Write(ref worldId);
 		buffer.Write(ref isSkinned);
 
-		buffer.Write(Encoding.UTF8.GetBytes(shaderPath));
+		buffer.Write(Encoding.UTF8.GetBytes(shaderFilePath));
+
+		buffer.Write(Encoding.UTF8.GetBytes(shaderLocalPath));
+
+		buffer.Write(ref matCompId);
 
 		buffer.Write(Encoding.UTF8.GetBytes(meshPath));
 
-		buffer.Write(ref ownerId);
+		buffer.Write(ref meshCompId);
 
 		if (isSkinned)
 		{

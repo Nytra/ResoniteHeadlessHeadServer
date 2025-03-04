@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using FrooxEngine;
 using SharedMemory;
+using System;
+using System.Linq.Expressions;
 
 namespace Thundagun;
 
@@ -58,9 +60,9 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 4096, 256); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16384, 256); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
-		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 256);
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 16384, 256);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -69,7 +71,9 @@ public class Thundagun
 			buffer.Close();
 			buffer = null;
 			syncBuffer?.Close();
+			syncBuffer = null;
 			returnBuffer?.Close();
+			returnBuffer = null;
 		};
 
 		// Send a 'sync message'
@@ -91,8 +95,8 @@ public class Thundagun
 
 		syncBuffer.Close();
 		syncBuffer = null;
-		returnBuffer.Close();
-		returnBuffer = null;
+		//returnBuffer.Close();
+		//returnBuffer = null;
 
 		if (START_CHILD_PROCESS)
 		{
@@ -112,6 +116,7 @@ public class Thundagun
 		Console.WriteLine("Server: Starting packet loop.");
 
 		Task.Run(ProcessPackets);
+		Task.Run(ReturnTask);
 	}
 	private static void ProcessPackets()
 	{
@@ -135,10 +140,12 @@ public class Thundagun
 						try
 						{
 							packetStruct.packet.Serialize(buffer);
+							//UniLog.Log($"Serialized {num}");
 						}
 						catch (Exception e)
 						{
 							UniLog.Error($"Exception during serialization: {e}");
+							throw;
 						}
 						try
 						{
@@ -147,6 +154,7 @@ public class Thundagun
 						catch (Exception e)
 						{
 							UniLog.Error($"Exception running packet queue callback: {e}");
+							throw;
 						}
 					}
 				}
@@ -154,23 +162,112 @@ public class Thundagun
 			catch (Exception e)
 			{
 				UniLog.Error($"Exception running packet task: {e}");
+				throw;
 			}
 			//int n;
 			//returnBuffer.Read(out n); // halt until the client sends data in this buffer
 		}
 	}
-	//private static void ReturnThread()
-	//{
-	//	while (true)
-	//	{
-	//		int num;
-	//		returnBuffer.Read(out num);
-	//		if (num == 5)
-	//		{
+	private static void ReturnTask()
+	{
+		int num;
+		while (true)
+		{
+			try 
+			{
+				returnBuffer.Read(out num);
 
-	//		}
-	//	}
-	//}
+				if (num != 0)
+				{
+					if (num == (int)PacketTypes.InitializeMaterialProperties)
+					{
+
+						var matConn = MaterialConnector.initializingProperties.Dequeue();
+						var onDone = MaterialConnector.onDoneActions.Dequeue();
+						InitializeMaterialPropertiesPacket deserializedObject = new(matConn);
+						deserializedObject.Deserialize(returnBuffer);
+
+						UniLog.Log($"InitializeMaterialProperties ReturnPacket Data: {string.Join(',', deserializedObject.PropertyIds)}");
+
+						int i = 0;
+						foreach (var prop in matConn.Properties)
+						{
+							
+							try
+							{
+								prop.GetType().GetProperty("Index").SetValue(prop, deserializedObject.PropertyIds[i]);
+								//	prop.Initialize(deserializedObject.PropertyIds[i]);
+							}
+							catch (Exception e)
+							{
+								UniLog.Warning($"Error when initializing material property: {e}");
+							}
+							i += 1;
+						}
+
+						onDone();
+					}
+					else if (num == (int)PacketTypes.ShaderLoadedCallback)
+					{
+						ShaderLoadedCallback callback = new();
+						callback.Deserialize(returnBuffer);
+
+						UniLog.Log($"ShaderLoadedCallback: {callback.shaderPath}");
+
+						string path = callback.shaderPath;
+
+						var pathCleaned = "";
+						foreach (var letter in path) 
+						{
+							if (Char.IsAsciiLetterOrDigit(letter) || letter == '/' || letter == '.' || letter == '\\' || letter == ':')
+							{
+								pathCleaned += letter;
+							}
+						}
+						//ShaderConnector.loadedShaders.Add(path);
+						//var matChange = MaterialConnector.queuedMaterialChanges.Dequeue();
+						UniLog.Log($"Callback actions num: {ShaderConnector.onLoadedActions[pathCleaned].Count}");
+						foreach (var act in ShaderConnector.onLoadedActions[pathCleaned])
+						{
+							act.Invoke();
+						}
+						//Thundagun.QueuePacket(matChange);
+
+						//ShaderConnector.allLoaded = true;
+
+						//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
+						//{
+						//	// if all loaded, flush material changes
+						//	if (ShaderConnector.allLoaded)
+						//	{
+						//		ShaderConnector.allLoadedFinal = true;
+						//		UniLog.Log($"Flushing material queue!");
+						//		while (MaterialConnector.queuedMaterialChanges.Count > 0)
+						//		{
+						//			var act = MaterialConnector.queuedMaterialChanges.Dequeue();
+						//			Thundagun.QueuePacket(act);
+						//		}
+						//		ShaderConnector.shader++;
+						//	}
+						//});
+						
+						
+					}
+				}
+			}
+			catch (Exception e) 
+			{
+				UniLog.Error($"ReturnBuffer Error: {e}");
+				throw;
+			}
+			//updates++;
+			//if (updates > 25)
+			//{
+			//	updates = 0;
+			//	await Task.Delay(TimeSpan.FromMilliseconds(1));
+			//}
+		}
+	}
 }
 
 public abstract class UpdatePacket<T> : IUpdatePacket
@@ -203,5 +300,8 @@ public enum PacketTypes
 	ApplyChangesMeshRenderer,
 	DestroyMeshRenderer,
 	LoadFromFileShader,
-	ApplyChangesMesh
+	ApplyChangesMesh,
+	ApplyChangesMaterial,
+	InitializeMaterialProperties,
+	ShaderLoadedCallback
 }

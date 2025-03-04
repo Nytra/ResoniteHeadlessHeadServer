@@ -3,6 +3,7 @@ using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
 using System.Text;
+using System.Text.Json;
 
 namespace Thundagun;
 
@@ -34,13 +35,25 @@ public class MeshConnector : IMeshConnector
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
 		LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
-		if (elem is null && LocalPath == "NULL") return;
+		if (elem is null && LocalPath == "NULL") 
+		{ 
+			onUpdated(true);
+			return;
+		}
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		Bounds = bounds;
 		Hint = uploadHint;
-		
+
 		//UniLog.Log($"UpdateMeshConnector: {ownerId.ToString()} {Asset?.AssetURL?.LocalPath ?? "NULL"}");
+
 		Thundagun.QueuePacket(new ApplyChangesMeshConnector(this));
+
+		Engine.Current.GlobalCoroutineManager.RunInSeconds(10, () => 
+		{
+			
+			
+		});
+
 		onUpdated(firstRender);
 		firstRender = false;
 	}

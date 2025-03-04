@@ -10,7 +10,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 	public bool firstRender = true;
 	public string ShaderLocalPath;
 	public string ShaderFilePath;
-	
+	public ulong ownerId;
 	public Shader targetShader;
 	public static Queue<ApplyChangesMaterialConnector> queuedMaterialChanges = new();
 	public void ApplyChanges(Shader shader, AssetIntegrated onDone)

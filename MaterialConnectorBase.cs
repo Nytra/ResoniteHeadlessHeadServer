@@ -48,7 +48,7 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public RawValueList<float4x4> matrices = new();
 	public static Queue<MaterialConnectorBase> initializingProperties = new();
 	public static Queue<Action> onDoneActions = new();
-	public ulong ownerId;
+	//public ulong ownerId;
 	//public AssetIntegrated onDone;
 	//public Action uploadMaterialAction;
 	public void Initialize(Asset asset)

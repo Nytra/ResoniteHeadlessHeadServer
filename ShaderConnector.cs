@@ -42,7 +42,8 @@ public class ShaderConnector : IShaderConnector
 			//onLoaded(true);
 			//return;
 		//}
-		//UniLog.Log($"Loading shader: {file}");
+
+		UniLog.Log($"Loading shader: {LocalPath}, {File}");
 		
 		//Thundagun.QueuePacket(new LoadFromFileShaderConnector(this));
 		//shaders++;

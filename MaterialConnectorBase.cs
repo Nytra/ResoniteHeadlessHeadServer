@@ -65,13 +65,14 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 
 
 
-		//var elem = Asset?.Owner as IWorldElement;
+		var elem = Asset?.Owner as IWorldElement;
 		//if (elem is null) 
 		//{ 
 			//onDone();
 			//return;
 		//}
-		//UniLog.Log($"InitializeMaterialProperties: {elem.ReferenceID.ToString() ?? "NULL"}");
+
+		UniLog.Log($"InitializeMaterialProperties: {elem?.ReferenceID.ToString() ?? "NULL"}, {Asset?.AssetURL?.LocalPath?.ToString() ?? "NULL"}");
 
 		Properties = properties;
 
@@ -87,7 +88,7 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 			//prop.Initialize(0);
 		//}
 
-		//onDone();
+		onDone();
 	}
 
 	public void SetDebug(bool debug, string tag)

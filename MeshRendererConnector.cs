@@ -19,10 +19,10 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 
-		Engine.Current.GlobalCoroutineManager.RunInSeconds(RandomX.Range(10) + 20, () =>
-		{
-			
-		});
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () =>
+		//{
+		//	
+		//});
 
 
 	}
@@ -93,12 +93,13 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 				shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 				try
 				{
-					shaderPath = ShaderConnector.LocalPathToFile[shaderPath];
-					shaderPath = shaderPath.Substring(0, Math.Min(shaderPath.Length, Thundagun.MAX_STRING_LENGTH));
+					shaderFilePath = ShaderConnector.LocalPathToFile[shaderPath];
+					shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
+					//shaderFilePath
 				}
 				catch (Exception e)
 				{
-					shaderPath = "NULL";
+					shaderFilePath = "NULL";
 				}
 			}
 		}

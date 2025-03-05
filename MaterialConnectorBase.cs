@@ -1,5 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
+using Microsoft.VisualBasic;
 using SharedMemory;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,8 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public RawValueList<float4x4> matrices = new();
 	public static Queue<MaterialConnectorBase> initializingProperties = new();
 	public static Queue<Action> onDoneActions = new();
+	public static Queue<Action> markDoneActions = new();
+	public bool Initialized;
 	//public ulong ownerId;
 	//public AssetIntegrated onDone;
 	//public Action uploadMaterialAction;
@@ -68,24 +71,71 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 		var elem = Asset?.Owner as IWorldElement;
 		//if (elem is null) 
 		//{ 
-			//onDone();
-			//return;
+		//onDone();
+		//return;
 		//}
 
-		UniLog.Log($"InitializeMaterialProperties: {elem?.ReferenceID.ToString() ?? "NULL"}, {Asset?.AssetURL?.LocalPath?.ToString() ?? "NULL"}");
+		//UniLog.Log($"InitializeMaterialProperties: {elem?.ReferenceID.ToString() ?? "NULL"}, {Asset?.AssetURL?.LocalPath?.ToString() ?? "NULL"}");
+		UniLog.Log($"InitializeMaterialProperties: {elem?.ReferenceID.ToString() ?? "NULL"} - {string.Join(',', properties.Select(p => p.Name))}");
 
 		Properties = properties;
 
 		initializingProperties.Enqueue(this);
-		onDoneActions.Enqueue(onDone);
+		onDoneActions.Enqueue(() => 
+		{
+			onDone();
+			Initialized = true;
+			//var elem = Asset?.Owner as MaterialProvider;
+			//UniLog.Log($"In on done action for mat {elem?.ReferenceID.ToString() ?? "NULL"}");
+			//elem.World.RunInUpdates(30, () => 
+			//{
+			//	try
+			//	{
+			//		//UniLog.Log("1");
+			//		foreach (var sm in elem.SyncMembers)
+			//		{
+			//			((SyncElement)sm).WasChanged = true;
+			//		}
+			//		//UniLog.Log("2");
+			//		var method = elem.GetType().GetMethod("UpdateMaterial", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(elem, new object[] { Asset });
+			//		//UniLog.Log("3");
+			//		var mat = Asset as Material;
+			//		//UniLog.Log("4");
+			//		var shad = typeof(MaterialProvider).GetField("requestedVariantShader", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(elem);
+			//		//UniLog.Log("5");
+			//		mat.Connector.ApplyChanges((Shader)shad, (bool b) => { });
+			//		//UniLog.Log("6");
+			//		if (this is MaterialConnector)
+			//		{
+			//			//var matConn = (MaterialConnector)this;
+			//			//matConn.ShaderLocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+			//			//try
+			//			//{
+			//			//	matConn.ShaderFilePath = ShaderConnector.LocalPathToFile[matConn.ShaderLocalPath];
+			//			//}
+			//			//catch (Exception e)
+			//			//{
+			//			//	matConn.ShaderFilePath = "NULL";
+			//			//}
+			//			//var owner = Asset?.Owner as IWorldElement;
+			//			//matConn.ownerId = ((owner?.ReferenceID.Position ?? default) << 8) | ((owner?.ReferenceID.User ?? default) & 0xFFul);
+			//			//UniLog.Log($"ApplyChangesMaterial: {matConn.ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {matConn.ShaderLocalPath} {matConn.ShaderFilePath}");
+			//			//Thundagun.QueuePacket(new ApplyChangesMaterialConnector((MaterialConnector)this));
+			//		}
+			//	}
+			//	catch (Exception e)
+			//	{
+			//		UniLog.Error("owo error " + e.ToString());
+			//	}
+			//});
+		});
+		//markDoneActions.Enqueue(() => { Initialized = true; });
 
 		Thundagun.QueuePacket(new InitializeMaterialPropertiesPacket(this));
 
-
-
 		//foreach (var prop in properties)
 		//{
-			//prop.Initialize(0);
+			//prop.Initialize(0); // Needed?
 		//}
 
 		onDone();
@@ -156,6 +206,9 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 			actionQueue = Pool.BorrowQueue<MaterialAction>();
 		}
 		actionQueue.Enqueue(action);
+
+		//if (this is MaterialConnector)
+			//Thundagun.QueuePacket(new ApplyChangesMaterialConnector((MaterialConnector)this));
 	}
 }
 

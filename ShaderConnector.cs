@@ -35,7 +35,12 @@ public class ShaderConnector : IShaderConnector
 			//onLoaded(true);
 			//return;
 		//}
-		LocalPathToFile[LocalPath] = File;
+
+		lock (LocalPathToFile)
+		{
+			LocalPathToFile[LocalPath] = File;
+		}
+		
 
 		//if (File == "NULL") 
 		//{

@@ -47,16 +47,46 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		//if (ShaderPath == "NULL") return;
 
 		ownerId = ((owner?.ReferenceID.Position ?? default) << 8) | ((owner?.ReferenceID.User ?? default) & 0xFFul);
-		//UniLog.Log($"ApplyChangesMaterial: {ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {ShaderLocalPath} {ShaderLocalPath}");
+		//UniLog.Log($"ApplyChangesMaterial: {ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {ShaderLocalPath} {ShaderFilePath}");
 
 		//var thing = new ApplyChangesMaterialConnector(this);
 		//Thundagun.QueuePacket(thing);
 
+
+
+
+
+		//if (!Initialized)
+		//{
+		//	MaterialConnectorBase.onDoneActions.Enqueue(() => 
+		//	{ 
+		//		onDone(firstRender);
+		//		firstRender = false;
+		//	});
+		//}
+		//else
+		//{
+
+		//}
+
 		var thing = new ApplyChangesMaterialConnector(this);
 		Thundagun.QueuePacket(thing);
 
-
-
+		if (!Initialized)
+		{
+			markDoneActions.Enqueue(() => 
+			{
+				
+				onDone(firstRender);
+				firstRender = false;
+			});
+		}
+		else
+		{
+			//var thing = new ApplyChangesMaterialConnector(this);
+			//Thundagun.QueuePacket(thing);
+			
+		}
 
 		onDone(firstRender);
 		firstRender = false;
@@ -252,6 +282,10 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 				}
 				obj = arr;
 			}
+			else if (type == (int)MaterialConnectorBase.ActionType.Matrix)
+			{
+				// owo
+			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Texture)
 			{
 				// handle textures here later? needs TextureConnector
@@ -340,6 +374,10 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 					buffer.Write(ref ff2);
 					buffer.Write(ref ff3);
 				}
+			}
+			else if (type == (int)MaterialConnectorBase.ActionType.Matrix)
+			{
+				// owo
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Texture)
 			{

@@ -183,7 +183,7 @@ public class Thundagun
 					{
 
 						var matConn = MaterialConnector.initializingProperties.Dequeue();
-						var onDone = MaterialConnector.onDoneActions.Dequeue();
+
 						InitializeMaterialPropertiesPacket deserializedObject = new(matConn);
 						deserializedObject.Deserialize(returnBuffer);
 
@@ -192,11 +192,10 @@ public class Thundagun
 						int i = 0;
 						foreach (var prop in matConn.Properties)
 						{
-							
 							try
 							{
 								prop.GetType().GetProperty("Index").SetValue(prop, deserializedObject.PropertyIds[i]);
-								//	prop.Initialize(deserializedObject.PropertyIds[i]);
+								//prop.Initialize(deserializedObject.PropertyIds[i]);
 							}
 							catch (Exception e)
 							{
@@ -205,7 +204,16 @@ public class Thundagun
 							i += 1;
 						}
 
-						onDone();
+						if (MaterialConnectorBase.onDoneActions.Count > 0)
+						{
+							var onDone = MaterialConnector.onDoneActions.Dequeue();
+							onDone.Invoke();
+						}
+						if (MaterialConnectorBase.markDoneActions.Count > 0)
+						{
+							var markDone = MaterialConnector.markDoneActions.Dequeue();
+							markDone.Invoke();
+						}
 					}
 					else if (num == (int)PacketTypes.ShaderLoadedCallback)
 					{

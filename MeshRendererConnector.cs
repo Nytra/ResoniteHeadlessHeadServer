@@ -58,6 +58,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 	string meshPath;
 	ulong meshCompId;
 	List<float> blendShapeWeights = new();
+	public bool enabled;
 
 	public ApplyChangesMeshRendererConnector(MeshRendererConnectorBase<T> owner) : base(owner)
 	{
@@ -67,7 +68,9 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		var asset = owner.Owner.Material.Target?.Asset;
 		meshCompId = owner.MeshCompId;
 		meshPath = owner.MeshLocalPath;
-		meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
+		if (meshPath.Length > Thundagun.MAX_STRING_LENGTH)
+			meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
+		enabled = owner.Owner.Enabled;
 
 		shaderFilePath = "NULL";
 		shaderLocalPath = "NULL";
@@ -90,11 +93,13 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			{
 				var shaderPath = shad.Asset?.AssetURL?.LocalPath ?? "NULL";
 				shaderLocalPath = shaderPath;
-				shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+				if (shaderLocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+					shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 				try
 				{
 					shaderFilePath = ShaderConnector.LocalPathToFile[shaderPath];
-					shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
+					if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
+						shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
 					//shaderFilePath
 				}
 				catch (Exception e)
@@ -138,6 +143,8 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		buffer.Read(out worldId);
 		buffer.Read(out isSkinned);
 
+		buffer.Read(out enabled);
+
 		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
 		buffer.Read(bytes2);
 		shaderFilePath = Encoding.UTF8.GetString(bytes2);
@@ -179,6 +186,8 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		buffer.Write(ref slotRefId);
 		buffer.Write(ref worldId);
 		buffer.Write(ref isSkinned);
+
+		buffer.Write(ref enabled);
 
 		buffer.Write(Encoding.UTF8.GetBytes(shaderFilePath));
 

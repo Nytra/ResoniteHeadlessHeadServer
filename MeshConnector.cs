@@ -33,7 +33,8 @@ public class MeshConnector : IMeshConnector
 	{
 		Mesh = meshx;
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
-		LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
 		if (elem is null && LocalPath == "NULL") 
 		{ 
@@ -487,7 +488,8 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		foreach (var blendShapeFrame in blendShapeFrames)
 		{
 			string name = blendShapeFrame.BlendShape.Name ?? "NULL";
-			name = name.Substring(0, Math.Min(name.Length, Thundagun.MAX_STRING_LENGTH));
+			if (name.Length > Thundagun.MAX_STRING_LENGTH)
+				name = name.Substring(0, Math.Min(name.Length, Thundagun.MAX_STRING_LENGTH));
 			buffer.Write(Encoding.UTF8.GetBytes(name));
 
 			float weight = blendShapeFrame.Weight;

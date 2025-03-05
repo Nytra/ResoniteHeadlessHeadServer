@@ -13,7 +13,7 @@ public class SlotConnector : Connector<Slot>, ISlotConnector
 	public ulong RefID;
 	public WorldConnector WorldConnector => (WorldConnector)World.Connector;
 	public long WorldId;
-	public bool ForceRender;
+	public bool ForceShowDebugVisuals;
 
 	public override void Initialize()
 	{
@@ -61,8 +61,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 	public long WorldId;
 	public bool IsUserRootSlot;
 	public bool HasActiveUser;
-	public bool ShouldRender;
-	public bool ForceRender;
+	public bool ShowDebugVisuals;
 	public bool IsLocalElement;
 
 	public ApplyChangesSlotConnector(SlotConnector owner) : base(owner)
@@ -86,7 +85,8 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		if (!string.IsNullOrEmpty(o.Name))
 		{
 			SlotName = new StringRenderTree(o.Name).GetRawString();
-			SlotName = SlotName.Substring(0, Math.Min(SlotName.Length, Thundagun.MAX_STRING_LENGTH));
+			if (SlotName.Length > Thundagun.MAX_STRING_LENGTH)
+				SlotName = SlotName.Substring(0, Math.Min(SlotName.Length, Thundagun.MAX_STRING_LENGTH));
 		}
 		else
 		{
@@ -96,12 +96,11 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		WorldId = owner.WorldId;
 		IsUserRootSlot = o.ActiveUserRoot?.Slot == o;
 		HasActiveUser = o.ActiveUser != null;
-		ShouldRender = o.GetComponent<MeshRenderer>() != null ||
-			o.GetComponent<Canvas>() != null ||
+		ShowDebugVisuals = o.GetComponent<Canvas>() != null ||
 			o.GetComponent<ParticleSystem>() != null ||
 			o.GetComponent<Light>() != null ||
-			o.GetComponent<ReflectionProbe>() != null; // also gets SkinnedMeshRenderer since it is inherited
-		ForceRender = owner.ForceRender;
+			o.GetComponent<ReflectionProbe>() != null ||
+			owner.ForceShowDebugVisuals;
 
 		//if (o.GetComponent<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
 		//{
@@ -166,9 +165,7 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Write(ref HasActiveUser);
 
-		buffer.Write(ref ShouldRender);
-
-		buffer.Write(ref ForceRender);
+		buffer.Write(ref ShowDebugVisuals);
 
 		buffer.Write(ref IsLocalElement);
 	}
@@ -219,15 +216,13 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 
 		buffer.Read(out HasActiveUser);
 
-		buffer.Read(out ShouldRender);
-
-		buffer.Read(out ForceRender);
+		buffer.Read(out ShowDebugVisuals);
 
 		buffer.Read(out IsLocalElement);
 	}
 	public override string ToString()
 	{
-		return $"ApplyChangesSlotConnector: {Active} {ActiveChanged} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId} {IsUserRootSlot} {HasActiveUser} {ShouldRender} {ForceRender}";
+		return $"ApplyChangesSlotConnector: {Active} {ActiveChanged} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId} {IsUserRootSlot} {HasActiveUser} {ShowDebugVisuals}";
 	}
 }
 

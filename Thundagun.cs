@@ -60,9 +60,9 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16384, 256); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16384, 512); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
-		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 16384, 256);
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 512);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -215,52 +215,50 @@ public class Thundagun
 							markDone.Invoke();
 						}
 					}
-					else if (num == (int)PacketTypes.ShaderLoadedCallback)
-					{
-						ShaderLoadedCallback callback = new();
-						callback.Deserialize(returnBuffer);
+					//else if (num == (int)PacketTypes.ShaderLoadedCallback)
+					//{
+					//	ShaderLoadedCallback callback = new();
+					//	callback.Deserialize(returnBuffer);
 
-						UniLog.Log($"ShaderLoadedCallback: {callback.shaderPath}");
+					//	UniLog.Log($"ShaderLoadedCallback: {callback.shaderPath}");
 
-						string path = callback.shaderPath;
+					//	string path = callback.shaderPath;
 
-						var pathCleaned = "";
-						foreach (var letter in path) 
-						{
-							if (Char.IsAsciiLetterOrDigit(letter) || letter == '/' || letter == '.' || letter == '\\' || letter == ':')
-							{
-								pathCleaned += letter;
-							}
-						}
-						//ShaderConnector.loadedShaders.Add(path);
-						//var matChange = MaterialConnector.queuedMaterialChanges.Dequeue();
-						UniLog.Log($"Callback actions num: {ShaderConnector.onLoadedActions[pathCleaned].Count}");
-						foreach (var act in ShaderConnector.onLoadedActions[pathCleaned])
-						{
-							act.Invoke();
-						}
-						//Thundagun.QueuePacket(matChange);
+					//	var pathCleaned = "";
+					//	foreach (var letter in path) 
+					//	{
+					//		if (Char.IsAsciiLetterOrDigit(letter) || letter == '/' || letter == '.' || letter == '\\' || letter == ':')
+					//		{
+					//			pathCleaned += letter;
+					//		}
+					//	}
+					//	//ShaderConnector.loadedShaders.Add(path);
+					//	//var matChange = MaterialConnector.queuedMaterialChanges.Dequeue();
+					//	UniLog.Log($"Callback actions num: {ShaderConnector.onLoadedActions[pathCleaned].Count}");
+					//	foreach (var act in ShaderConnector.onLoadedActions[pathCleaned])
+					//	{
+					//		act.Invoke();
+					//	}
+					//	//Thundagun.QueuePacket(matChange);
 
-						//ShaderConnector.allLoaded = true;
+					//	//ShaderConnector.allLoaded = true;
 
-						//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
-						//{
-						//	// if all loaded, flush material changes
-						//	if (ShaderConnector.allLoaded)
-						//	{
-						//		ShaderConnector.allLoadedFinal = true;
-						//		UniLog.Log($"Flushing material queue!");
-						//		while (MaterialConnector.queuedMaterialChanges.Count > 0)
-						//		{
-						//			var act = MaterialConnector.queuedMaterialChanges.Dequeue();
-						//			Thundagun.QueuePacket(act);
-						//		}
-						//		ShaderConnector.shader++;
-						//	}
-						//});
-						
-						
-					}
+					//	//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
+					//	//{
+					//	//	// if all loaded, flush material changes
+					//	//	if (ShaderConnector.allLoaded)
+					//	//	{
+					//	//		ShaderConnector.allLoadedFinal = true;
+					//	//		UniLog.Log($"Flushing material queue!");
+					//	//		while (MaterialConnector.queuedMaterialChanges.Count > 0)
+					//	//		{
+					//	//			var act = MaterialConnector.queuedMaterialChanges.Dequeue();
+					//	//			Thundagun.QueuePacket(act);
+					//	//		}
+					//	//		ShaderConnector.shader++;
+					//	//	}
+					//	//});
+					//}
 				}
 			}
 			catch (Exception e) 
@@ -310,6 +308,6 @@ public enum PacketTypes
 	LoadFromFileShader,
 	ApplyChangesMesh,
 	ApplyChangesMaterial,
-	InitializeMaterialProperties,
-	ShaderLoadedCallback
+	InitializeMaterialProperties
+	//ShaderLoadedCallback
 }

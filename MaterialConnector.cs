@@ -13,6 +13,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 	public ulong ownerId;
 	public Shader targetShader;
 	public static Queue<ApplyChangesMaterialConnector> queuedMaterialChanges = new();
+	public bool initQueued = false;
 	public void ApplyChanges(Shader shader, AssetIntegrated onDone)
 	{
 		//Shader = shader;
@@ -74,17 +75,19 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		if (!Initialized)
 		{
-			markDoneActions.Enqueue(() => 
+			if (!initQueued)
 			{
-				
-				onDone(firstRender);
-				firstRender = false;
-			});
+				initQueued = true;
+				markDoneActions.Enqueue(() =>
+				{
+
+					onDone(firstRender);
+					firstRender = false;
+				});
+			}
 		}
 		else
 		{
-			//var thing = new ApplyChangesMaterialConnector(this);
-			//Thundagun.QueuePacket(thing);
 			
 		}
 
@@ -200,10 +203,12 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 	{
 		//targetShader = owner.Shader;
 		shaderFilePath = owner.ShaderFilePath;
-		shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
+		if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
+			shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
 
 		shaderLocalPath = owner.ShaderLocalPath;
-		shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		if (shaderLocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 
 		//actionQueue = new Queue<MaterialConnectorBase.MaterialAction>(owner.actionQueue);
 		actionQueue = owner.actionQueue;
@@ -337,7 +342,10 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 			{
 				if ((string)obj != null)
 				{
-					buffer.WriteString((string)obj);
+					string newStr = (string)obj;
+					if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
+						newStr = newStr.Substring(0, Math.Min(newStr.Length, Thundagun.MAX_STRING_LENGTH));
+					buffer.WriteString(newStr);
 				}
 				else
 				{

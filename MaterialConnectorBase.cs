@@ -247,7 +247,10 @@ public class InitializeMaterialPropertiesPacket : UpdatePacket<MaterialConnector
 		buffer.Write(ref propCount);
 		foreach (var str in PropertyNames)
 		{
-			buffer.WriteString(str);
+			string newStr = str;
+			if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
+				newStr = str.Substring(0, Math.Min(str.Length, Thundagun.MAX_STRING_LENGTH));
+			buffer.WriteString(newStr);
 		}
 	}
 }

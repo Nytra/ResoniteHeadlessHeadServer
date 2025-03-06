@@ -11,7 +11,7 @@ public class Thundagun
 {
 	private static CircularBuffer? buffer;
 	private static CircularBuffer? returnBuffer;
-	//private static CircularBuffer? highPriorityBuffer;
+	//private static CircularBuffer? frameSyncBuffer;
 	private static BufferReadWrite? syncBuffer;
 	private static Process? childProcess;
 	private const bool START_CHILD_PROCESS = false;
@@ -75,8 +75,8 @@ public class Thundagun
 
 		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16384, 512); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
-		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 16384, 512);
-		//highPriorityBuffer = new CircularBuffer($"HighPriorityBuffer{mainBufferId}", 16384, 512);
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 512);
+		//frameSyncBuffer = new CircularBuffer($"FrameSyncBuffer{mainBufferId}", 2, 4);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -88,8 +88,8 @@ public class Thundagun
 			syncBuffer = null;
 			returnBuffer?.Close();
 			returnBuffer = null;
-			//highPriorityBuffer?.Close();
-			//highPriorityBuffer = null;
+			//frameSyncBuffer?.Close();
+			//frameSyncBuffer = null;
 		};
 
 		// Send a 'sync message'
@@ -133,7 +133,19 @@ public class Thundagun
 
 		Task.Run(ProcessPackets);
 		Task.Run(ReturnTask);
+		//Engine.Current.GlobalCoroutineManager.RunInUpdates(1, () =>
+		//{
+			//FrameSyncLoop();
+		//});
 	}
+	//private static void FrameSyncLoop()
+	//{
+	//	Thread.Sleep((int)((1 / 30f) * 1000f));
+	//	Engine.Current.GlobalCoroutineManager.RunInUpdates(1, () => 
+	//	{ 
+	//		FrameSyncLoop();
+	//	});
+	//}
 	private static void ProcessPackets()
 	{
 		while (true)

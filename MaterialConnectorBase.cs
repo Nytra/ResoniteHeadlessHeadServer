@@ -167,7 +167,7 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 
 	public void SetMatrix(int property, in float4x4 matrix)
 	{
-		Enqueue(new MaterialAction(ActionType.Matrix, property, new float4(StoreMatrix(in matrix)))); // need to handle StoreMatrix differently???
+		Enqueue(new MaterialAction(ActionType.Matrix, property, new float4(StoreMatrix(in matrix)))); // never used in frooxengine, don't need to handle this
 	}
 
 	public void SetTexture(int property, ITexture texture)

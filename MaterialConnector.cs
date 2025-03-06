@@ -407,7 +407,7 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Matrix)
 			{
-				// owo
+				// never used in frooxengine, don't need to handle this
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Texture)
 			{

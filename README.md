@@ -8,4 +8,4 @@ Put the release files in `Resonite\Headless\HeadlessLibraries`
 
 Use headless launch argument `-LoadAssembly "HeadlessLibraries\ConnectorTest1.dll"`
 
-Unity client repo (Unity 6000.0.25f1): https://github.com/Nytra/ResoniteHeadlessHeadUnity
+Unity client repo (Unity 6000.0.41f1): https://github.com/Nytra/ResoniteHeadlessHeadUnity

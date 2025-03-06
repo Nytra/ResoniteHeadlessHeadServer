@@ -2,8 +2,6 @@
 using System.Diagnostics;
 using FrooxEngine;
 using SharedMemory;
-using System;
-using System.Linq.Expressions;
 
 namespace Thundagun;
 
@@ -92,7 +90,7 @@ public class Thundagun
 			//frameSyncBuffer = null;
 		};
 
-		// Send a 'sync message'
+		// Send a sync message
 
 		Console.WriteLine("Server: Writing main buffer id to sync buffer...");
 
@@ -111,8 +109,6 @@ public class Thundagun
 
 		syncBuffer.Close();
 		syncBuffer = null;
-		//returnBuffer.Close();
-		//returnBuffer = null;
 
 		if (START_CHILD_PROCESS)
 		{
@@ -168,7 +164,6 @@ public class Thundagun
 						try
 						{
 							packetStruct.packet.Serialize(buffer);
-							//UniLog.Log($"Serialized {num}");
 						}
 						catch (Exception e)
 						{
@@ -213,7 +208,6 @@ public class Thundagun
 								try
 								{
 									highPrio.packet.Serialize(buffer);
-									//UniLog.Log($"Serialized {num}");
 								}
 								catch (Exception e)
 								{
@@ -237,7 +231,6 @@ public class Thundagun
 						try
 						{
 							packetStruct.packet.Serialize(buffer);
-							//UniLog.Log($"Serialized {num}");
 						}
 						catch (Exception e)
 						{
@@ -300,62 +293,7 @@ public class Thundagun
 							}
 							i += 1;
 						}
-
-						//if (MaterialConnectorBase.onDoneActions.Count > 0)
-						//{
-						//	var onDone = MaterialConnector.onDoneActions.Dequeue();
-						//	onDone.Invoke();
-						//}
-						//if (MaterialConnectorBase.markDoneActions.Count > 0)
-						//{
-						//	var markDone = MaterialConnector.markDoneActions.Dequeue();
-						//	markDone.Invoke();
-						//}
 					}
-					//else if (num == (int)PacketTypes.ShaderLoadedCallback)
-					//{
-					//	ShaderLoadedCallback callback = new();
-					//	callback.Deserialize(returnBuffer);
-
-					//	UniLog.Log($"ShaderLoadedCallback: {callback.shaderPath}");
-
-					//	string path = callback.shaderPath;
-
-					//	var pathCleaned = "";
-					//	foreach (var letter in path) 
-					//	{
-					//		if (Char.IsAsciiLetterOrDigit(letter) || letter == '/' || letter == '.' || letter == '\\' || letter == ':')
-					//		{
-					//			pathCleaned += letter;
-					//		}
-					//	}
-					//	//ShaderConnector.loadedShaders.Add(path);
-					//	//var matChange = MaterialConnector.queuedMaterialChanges.Dequeue();
-					//	UniLog.Log($"Callback actions num: {ShaderConnector.onLoadedActions[pathCleaned].Count}");
-					//	foreach (var act in ShaderConnector.onLoadedActions[pathCleaned])
-					//	{
-					//		act.Invoke();
-					//	}
-					//	//Thundagun.QueuePacket(matChange);
-
-					//	//ShaderConnector.allLoaded = true;
-
-					//	//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
-					//	//{
-					//	//	// if all loaded, flush material changes
-					//	//	if (ShaderConnector.allLoaded)
-					//	//	{
-					//	//		ShaderConnector.allLoadedFinal = true;
-					//	//		UniLog.Log($"Flushing material queue!");
-					//	//		while (MaterialConnector.queuedMaterialChanges.Count > 0)
-					//	//		{
-					//	//			var act = MaterialConnector.queuedMaterialChanges.Dequeue();
-					//	//			Thundagun.QueuePacket(act);
-					//	//		}
-					//	//		ShaderConnector.shader++;
-					//	//	}
-					//	//});
-					//}
 				}
 			}
 			catch (Exception e) 
@@ -363,12 +301,6 @@ public class Thundagun
 				UniLog.Error($"ReturnBuffer Error: {e}");
 				throw;
 			}
-			//updates++;
-			//if (updates > 25)
-			//{
-			//	updates = 0;
-			//	await Task.Delay(TimeSpan.FromMilliseconds(1));
-			//}
 		}
 	}
 }
@@ -406,5 +338,4 @@ public enum PacketTypes
 	ApplyChangesMesh,
 	ApplyChangesMaterial,
 	InitializeMaterialProperties
-	//ShaderLoadedCallback
 }

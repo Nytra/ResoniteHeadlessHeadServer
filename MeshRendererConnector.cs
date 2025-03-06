@@ -1,5 +1,4 @@
-﻿using Elements.Core;
-using FrooxEngine;
+﻿using FrooxEngine;
 using SharedMemory;
 using System.Text;
 
@@ -18,13 +17,6 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 		MeshLocalPath = localPath;
 
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
-
-		//Engine.Current.GlobalCoroutineManager.RunInSeconds(1, () =>
-		//{
-			
-		//});
-
-
 	}
 
 	public override void Destroy(bool destroyingWorld)
@@ -34,7 +26,6 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 
 	public override void Initialize()
 	{
-		//Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 	}
 }
 
@@ -81,9 +72,6 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			matCompId = (materialTarget.ReferenceID.Position << 8) | (materialTarget.ReferenceID.User & 0xFFul);
 		}
 
-
-
-		//var matprovider = asset?.Owner as MaterialProvider;
 		var matprovider = materialTarget as MaterialProvider;
 		if (matprovider != null)
 		{
@@ -100,7 +88,6 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 					shaderFilePath = ShaderConnector.LocalPathToFile[shaderPath];
 					if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
 						shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
-					//shaderFilePath
 				}
 				catch (Exception e)
 				{
@@ -111,8 +98,6 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 		//UniLog.Log($"ApplyChangesMeshRenderer: {isSkinned} {matCompId} {meshCompId} {shaderPath} {meshPath}");
 
-		//UniLog.Log($"MeshRenderer First StaticShader LocalPath: {shaderPath}");
-		//UniLog.Log($"MeshRenderer MatCompId: {matCompId}");
 		if (isSkinned)
 		{
 			var skinned = owner.Owner as SkinnedMeshRenderer;

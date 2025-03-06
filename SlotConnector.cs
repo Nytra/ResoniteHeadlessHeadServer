@@ -90,7 +90,10 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 		}
 		else
 		{
-			SlotName = "NULL";
+			if (o.Name == null)
+				SlotName = "NULL";
+			else
+				SlotName = o.Name;
 		}
 
 		WorldId = owner.WorldId;
@@ -101,19 +104,6 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			o.GetComponent<Light>() != null ||
 			o.GetComponent<ReflectionProbe>() != null ||
 			owner.ForceShowDebugVisuals;
-
-		//if (o.GetComponent<SkinnedMeshRenderer>() is SkinnedMeshRenderer skinned)
-		//{
-		//	foreach (var bone in skinned.Bones)
-		//	{
-		//		var slotConn = bone.Connector as SlotConnector;
-		//		if (!slotConn.ForceRender)
-		//		{
-		//			slotConn.ForceRender = true;
-		//			Thundagun.QueuePacket(new ApplyChangesSlotConnector(slotConn));
-		//		}
-		//	}
-		//}
 	}
 
 	public override void Serialize(CircularBuffer buffer)

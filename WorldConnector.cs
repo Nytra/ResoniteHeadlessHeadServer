@@ -1,7 +1,6 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
-using System.Runtime.Serialization;
 
 namespace Thundagun;
 
@@ -33,12 +32,10 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 {
 	public override int Id => (int)PacketTypes.InitializeWorld;
 
-	//public WorldManagerConnector connector;
 	public long WorldId;
 
 	public InitializeWorldConnector(WorldConnector owner) : base(owner)
 	{
-		//connector = owner.Owner.WorldManager.Connector as WorldManagerConnector;
 		WorldId = owner.WorldId;
 	}
 

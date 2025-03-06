@@ -6,26 +6,14 @@ namespace Thundagun;
 
 public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISharedMaterialConnector, IAssetConnector, ISharedMaterialPropertySetter, IMaterialPropertySetter
 {
-	//public Shader Shader;
 	public bool firstRender = true;
 	public string ShaderLocalPath;
 	public string ShaderFilePath;
 	public ulong ownerId;
 	public Shader targetShader;
-	public static Queue<ApplyChangesMaterialConnector> queuedMaterialChanges = new();
-	public bool initQueued = false;
 	public void ApplyChanges(Shader shader, AssetIntegrated onDone)
 	{
-		//Shader = shader;
-		// queue packet
-
-		//Engine.Current.GlobalCoroutineManager.RunInSeconds(15, () =>
-		//{
-			
-		//});
-
 		targetShader = shader;
-		//UniLog.Log($"asset local path: {Asset?.AssetURL?.LocalPath ?? "NULL"} {Asset?.AssetURL?.ToString() ?? "NULL"} {Asset?.AssetURL?.OriginalString ?? "NULL"}");
 		ShaderLocalPath = targetShader?.AssetURL?.LocalPath ?? "NULL";
 		try
 		{
@@ -35,119 +23,20 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		{
 			//UniLog.Warning($"Shader file path is null.");
 			ShaderFilePath = "NULL";
-			//onDone(true);
-			//return;
 		}
 		var owner = Asset?.Owner as IWorldElement;
-		//if (ShaderLocalPath == "NULL" && owner is null && ShaderFilePath == "NULL")
-		//{
-		//onDone(true);
-		//return;
-		//}
 
 		//if (ShaderPath == "NULL") return;
 
 		ownerId = ((owner?.ReferenceID.Position ?? default) << 8) | ((owner?.ReferenceID.User ?? default) & 0xFFul);
+
 		//UniLog.Log($"ApplyChangesMaterial: {ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {ShaderLocalPath} {ShaderFilePath}");
-
-		//var thing = new ApplyChangesMaterialConnector(this);
-		//Thundagun.QueuePacket(thing);
-
-
-
-
-
-		//if (!Initialized)
-		//{
-		//	MaterialConnectorBase.onDoneActions.Enqueue(() => 
-		//	{ 
-		//		onDone(firstRender);
-		//		firstRender = false;
-		//	});
-		//}
-		//else
-		//{
-
-		//}
 
 		var thing = new ApplyChangesMaterialConnector(this);
 		Thundagun.QueuePacket(thing);
 
-		//Engine.Current.GlobalCoroutineManager.RunInSeconds(1, () => 
-		//{
-			
-		//});`
-		
-
-		//if (!Initialized)
-		//{
-		//	if (!initQueued)
-		//	{
-		//		initQueued = true;
-		//		markDoneActions.Enqueue(() =>
-		//		{
-		//			//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
-		//			//{
-
-		//			//	var elem = Asset.Owner as MaterialProvider;
-		//			//	var method = elem.GetType().GetMethod("UpdateMaterialAsset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(elem, new object[] { Asset });
-		//			//	//var shad = typeof(MaterialProvider).GetField("requestedVariantShader", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(elem);
-		//			//	//ApplyChanges((Shader)shad, onDone);
-		//			//	onDone(firstRender);
-		//			//	firstRender = false;
-		//			//});
-
-		//			//onDone(firstRender);
-		//			//firstRender = false;
-
-		//		});
-		//	}
-		//}
-		//else
-		//{
-			
-		//}
-
 		onDone(true);
 		firstRender = false;
-
-		//Engine.Current.GlobalCoroutineManager.RunInSeconds(3, () => 
-		//{
-			
-		//});
-		
-
-		//Thundagun.QueuePacket(new ApplyChangesMaterialConnector(this));
-
-		//onDone(firstRender);
-		//firstRender = false;
-
-
-
-		//if (!ShaderConnector.allLoadedFinal)
-		//{
-		//	//if (!ShaderConnector.onLoadedActions.ContainsKey(ShaderPath))
-		//	//{
-		//	//	ShaderConnector.onLoadedActions.Add(ShaderPath, new List<Action>());
-		//	//}
-		//	//var thing = new ApplyChangesMaterialConnector(this);
-		//	//ShaderConnector.onLoadedActions[ShaderPath].Add(() =>
-		//	//{
-		//	//	Thundagun.QueuePacket(thing);
-		//	//});
-		//	queuedMaterialChanges.Enqueue(new ApplyChangesMaterialConnector(this));
-		//}
-		//else
-		//{
-		//	var thing = new ApplyChangesMaterialConnector(this);
-		//	Thundagun.QueuePacket(thing);
-
-		//	//onDone(firstRender);
-		//	//firstRender = false;
-		//}
-
-
-
 	}
 
 	public void SetInstancing(bool state)
@@ -164,67 +53,17 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 	{
 		Enqueue(new MaterialAction(ActionType.Tag, (int)tag, float4.Zero, value));
 	}
-
-	//private void UploadMaterial()
-	//{
-	//	bool instanceChanged = false;
-	//	if (BeginUpload(ref instanceChanged))
-	//	{
-	//		while (actionQueue != null && actionQueue.Count > 0)
-	//		{
-	//			MaterialAction action = actionQueue.Dequeue();
-	//			ApplyAction(ref action);
-	//		}
-	//	}
-	//	if (actionQueue != null)
-	//	{
-	//		Pool.Return(ref actionQueue);
-	//	}
-	//	if (matrices != null)
-	//	{
-	//		Pool.Return(ref matrices);
-	//	}
-	//	onDone(instanceChanged);
-	//	onDone = null;
-	//	base.Engine.MaterialUpdated();
-	//}
-
-	//protected override bool BeginUpload(ref bool instanceChanged)
-	//{
-	//	Shader shader = targetShader?.GetUnity();
-	//	if (shader == null)
-	//	{
-	//		if (_unityMaterial != null)
-	//		{
-	//			instanceChanged = true;
-	//			CleanupMaterial();
-	//		}
-	//		return false;
-	//	}
-	//	if (_unityMaterial == null)
-	//	{
-	//		_unityMaterial = new Material(shader);
-	//		instanceChanged = true;
-	//	}
-	//	else if (UnityMaterial.shader != shader)
-	//	{
-	//		UnityMaterial.shader = shader;
-	//	}
-	//	return true;
-	//}
 }
 
 public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 {
 	// upload material info, then upload actions in queue
-	//Shader targetShader;
 	string shaderFilePath;
 	string shaderLocalPath;
 	public Queue<MaterialConnectorBase.MaterialAction> actionQueue;
 	public ulong ownerId;
 	public ApplyChangesMaterialConnector(MaterialConnector owner) : base(owner)
 	{
-		//targetShader = owner.Shader;
 		shaderFilePath = owner.ShaderFilePath;
 		if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
 			shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
@@ -312,7 +151,7 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Matrix)
 			{
-				// owo
+				// never used in frooxengine, don't need to handle
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Texture)
 			{

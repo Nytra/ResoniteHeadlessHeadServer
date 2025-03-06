@@ -1,12 +1,7 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices.Marshalling;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Thundagun;
 
@@ -26,17 +21,11 @@ public class ShaderConnector : IShaderConnector
 		Asset = asset;
 		LocalPath = asset?.AssetURL?.LocalPath ?? "NULL";
 		//UniLog.Log($"Initialize shader: {LocalPath}");
-		//UniLog.Log($"ShaderInit: {LocalPath}");
 	}
 
 	public void LoadFromFile(string file, AssetIntegrated onLoaded)
 	{
 		File = file ?? "NULL";
-		//if (File == "NULL") 
-		//{
-		//onLoaded(true);
-		//return;
-		//}
 
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
 
@@ -47,43 +36,8 @@ public class ShaderConnector : IShaderConnector
 				LocalPathToFile[LocalPath] = File;
 			}
 		}
-		
-
-		//if (File == "NULL") 
-		//{
-			//onLoaded(true);
-			//return;
-		//}
 
 		UniLog.Log($"Loading shader: {LocalPath}, {File}");
-		
-		//Thundagun.QueuePacket(new LoadFromFileShaderConnector(this));
-		//shaders++;
-		//if (!ShaderConnector.onLoadedActions.ContainsKey(File))
-		//{
-			//var list = new List<Action>();
-			//list.Add(() => onLoaded(true));
-			//lock (onLoadedActions)
-				//onLoadedActions.Add(File, list);
-		//}
-		//else
-		//{
-		//	onLoadedActions[File].Add(() => onLoaded(true));
-		//}
-		
-		//allLoaded = false;
-
-		//while (!loadedShaders.Contains(File))
-		//{
-			//Thread.Sleep(1);
-		//}
-
-		//onLoaded(true);
-
-		//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
-		//{
-			
-		//});
 
 		onLoaded(true);
 	}
@@ -127,19 +81,3 @@ public class LoadFromFileShaderConnector : UpdatePacket<ShaderConnector>
 		buffer.Write(Encoding.UTF8.GetBytes(LocalPath));
 	}
 }
-
-//public class ShaderLoadedCallback : IUpdatePacket
-//{
-//	public string shaderPath;
-//	public int Id => (int)PacketTypes.ShaderLoadedCallback;
-
-//	public void Deserialize(CircularBuffer buffer)
-//	{
-//		buffer.ReadString(out shaderPath);
-//	}
-
-//	public void Serialize(CircularBuffer buffer)
-//	{
-//		buffer.WriteString(shaderPath);
-//	}
-//}

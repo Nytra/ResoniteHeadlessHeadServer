@@ -301,16 +301,16 @@ public class Thundagun
 							i += 1;
 						}
 
-						if (MaterialConnectorBase.onDoneActions.Count > 0)
-						{
-							var onDone = MaterialConnector.onDoneActions.Dequeue();
-							onDone.Invoke();
-						}
-						if (MaterialConnectorBase.markDoneActions.Count > 0)
-						{
-							var markDone = MaterialConnector.markDoneActions.Dequeue();
-							markDone.Invoke();
-						}
+						//if (MaterialConnectorBase.onDoneActions.Count > 0)
+						//{
+						//	var onDone = MaterialConnector.onDoneActions.Dequeue();
+						//	onDone.Invoke();
+						//}
+						//if (MaterialConnectorBase.markDoneActions.Count > 0)
+						//{
+						//	var markDone = MaterialConnector.markDoneActions.Dequeue();
+						//	markDone.Invoke();
+						//}
 					}
 					//else if (num == (int)PacketTypes.ShaderLoadedCallback)
 					//{

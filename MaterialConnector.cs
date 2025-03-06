@@ -79,41 +79,42 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		//});`
 		
 
-		if (!Initialized)
-		{
-			if (!initQueued)
-			{
-				initQueued = true;
-				markDoneActions.Enqueue(() =>
-				{
-					//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
-					//{
+		//if (!Initialized)
+		//{
+		//	if (!initQueued)
+		//	{
+		//		initQueued = true;
+		//		markDoneActions.Enqueue(() =>
+		//		{
+		//			//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
+		//			//{
 
-					//	var elem = Asset.Owner as MaterialProvider;
-					//	var method = elem.GetType().GetMethod("UpdateMaterialAsset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(elem, new object[] { Asset });
-					//	//var shad = typeof(MaterialProvider).GetField("requestedVariantShader", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(elem);
-					//	//ApplyChanges((Shader)shad, onDone);
-					//	onDone(firstRender);
-					//	firstRender = false;
-					//});
-					onDone(firstRender);
-					firstRender = false;
+		//			//	var elem = Asset.Owner as MaterialProvider;
+		//			//	var method = elem.GetType().GetMethod("UpdateMaterialAsset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(elem, new object[] { Asset });
+		//			//	//var shad = typeof(MaterialProvider).GetField("requestedVariantShader", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(elem);
+		//			//	//ApplyChanges((Shader)shad, onDone);
+		//			//	onDone(firstRender);
+		//			//	firstRender = false;
+		//			//});
 
-				});
-			}
-		}
-		else
-		{
+		//			//onDone(firstRender);
+		//			//firstRender = false;
+
+		//		});
+		//	}
+		//}
+		//else
+		//{
 			
-		}
+		//}
 
 		onDone(true);
 		firstRender = false;
 
-		Engine.Current.GlobalCoroutineManager.RunInSeconds(3, () => 
-		{
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(3, () => 
+		//{
 			
-		});
+		//});
 		
 
 		//Thundagun.QueuePacket(new ApplyChangesMaterialConnector(this));

@@ -48,9 +48,9 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public Queue<MaterialAction> actionQueue = new();
 	public RawValueList<float4x4> matrices = new();
 	public static Queue<MaterialConnectorBase> initializingProperties = new();
-	public static Queue<Action> onDoneActions = new();
-	public static Queue<Action> markDoneActions = new();
-	public bool Initialized;
+	//public static Queue<Action> onDoneActions = new();
+	//public static Queue<Action> markDoneActions = new();
+	//public bool Initialized;
 	//public ulong ownerId;
 	//public AssetIntegrated onDone;
 	//public Action uploadMaterialAction;
@@ -81,10 +81,11 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 		Properties = properties;
 
 		initializingProperties.Enqueue(this);
-		onDoneActions.Enqueue(() => 
-		{
-			onDone();
-			Initialized = true;
+		//onDoneActions.Enqueue(() => 
+		//{
+			//onDone();
+			//Initialized = true;
+
 			//var elem = Asset?.Owner as MaterialProvider;
 			//UniLog.Log($"In on done action for mat {elem?.ReferenceID.ToString() ?? "NULL"}");
 			//elem.World.RunInUpdates(30, () => 
@@ -128,7 +129,7 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 			//		UniLog.Error("owo error " + e.ToString());
 			//	}
 			//});
-		});
+		//});
 		//markDoneActions.Enqueue(() => { Initialized = true; });
 
 		Thundagun.QueueHighPriorityPacket(new InitializeMaterialPropertiesPacket(this));

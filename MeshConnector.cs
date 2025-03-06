@@ -41,6 +41,11 @@ public class MeshConnector : IMeshConnector
 			onUpdated(true);
 			return;
 		}
+		if (elem != null && elem.IsLocalElement) // this skips stuff like UIX which is VERY LAGGY to send over sometimes
+		{
+			onUpdated(true);
+			return;
+		}
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		Bounds = bounds;
 		Hint = uploadHint;
@@ -49,11 +54,9 @@ public class MeshConnector : IMeshConnector
 
 		Thundagun.QueuePacket(new ApplyChangesMeshConnector(this));
 
-		Engine.Current.GlobalCoroutineManager.RunInSeconds(10, () => 
-		{
-			
-			
-		});
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(10, () => 
+		//{
+		//});
 
 		onUpdated(firstRender);
 		firstRender = false;

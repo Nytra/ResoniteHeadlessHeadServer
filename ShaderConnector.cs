@@ -9,11 +9,6 @@ public class ShaderConnector : IShaderConnector
 {
 	public string File;
 	public string LocalPath;
-	public static Dictionary<string, List<Action>> onLoadedActions = new();
-	public static HashSet<string> loadedShaders = new();
-	public static int shader = 0;
-	public static bool allLoaded = false;
-	public static bool allLoadedFinal = false;
 	public static Dictionary<string, string> LocalPathToFile = new();
 	public Asset Asset;
 	public void Initialize(Asset asset)

@@ -20,8 +20,10 @@ public class ShaderConnector : IShaderConnector
 	public static bool allLoaded = false;
 	public static bool allLoadedFinal = false;
 	public static Dictionary<string, string> LocalPathToFile = new();
+	public Asset Asset;
 	public void Initialize(Asset asset)
 	{
+		Asset = asset;
 		LocalPath = asset?.AssetURL?.LocalPath ?? "NULL";
 		//UniLog.Log($"Initialize shader: {LocalPath}");
 		//UniLog.Log($"ShaderInit: {LocalPath}");
@@ -32,13 +34,18 @@ public class ShaderConnector : IShaderConnector
 		File = file ?? "NULL";
 		//if (File == "NULL") 
 		//{
-			//onLoaded(true);
-			//return;
+		//onLoaded(true);
+		//return;
 		//}
 
-		lock (LocalPathToFile)
+		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+
+		if (File != "NULL" && LocalPath != "NULL" && !LocalPathToFile.ContainsKey(LocalPath))
 		{
-			LocalPathToFile[LocalPath] = File;
+			lock (LocalPathToFile)
+			{
+				LocalPathToFile[LocalPath] = File;
+			}
 		}
 		
 
@@ -73,9 +80,9 @@ public class ShaderConnector : IShaderConnector
 
 		//onLoaded(true);
 
-		//Engine.Current.GlobalCoroutineManager.RunInSeconds(15, () => 
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
 		//{
-		//	
+			
 		//});
 
 		onLoaded(true);

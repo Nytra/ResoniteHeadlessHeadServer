@@ -11,7 +11,7 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 	public string MeshLocalPath;
 	public override void ApplyChanges()
 	{
-		var elem = Owner.Mesh.Asset?.Owner as IWorldElement;
+		var elem = Owner.Mesh?.Asset?.Owner as IWorldElement;
 		var localPath = Owner.Mesh.Asset?.AssetURL?.LocalPath ?? "NULL";
 		if (elem is null && localPath == "NULL") return;
 		MeshCompId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
@@ -19,9 +19,9 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 
 		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 
-		//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () =>
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(1, () =>
 		//{
-		//	
+			
 		//});
 
 
@@ -75,7 +75,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		shaderFilePath = "NULL";
 		shaderLocalPath = "NULL";
 
-		var materialTarget = owner.Owner.Material.Target;
+		var materialTarget = owner.Owner.Material?.Asset?.Owner as IWorldElement;
 		if (materialTarget != null)
 		{
 			matCompId = (materialTarget.ReferenceID.Position << 8) | (materialTarget.ReferenceID.User & 0xFFul);
@@ -88,7 +88,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		if (matprovider != null)
 		{
 			HashSet<StaticShader> hashset = matprovider.GetProviders<StaticShader>();
-			var shad = hashset.FirstOrDefault();
+			var shad = hashset.FirstOrDefault(sh => sh != null);
 			if (shad != null)
 			{
 				var shaderPath = shad.Asset?.AssetURL?.LocalPath ?? "NULL";

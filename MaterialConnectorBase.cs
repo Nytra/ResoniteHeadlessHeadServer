@@ -131,12 +131,12 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 		});
 		//markDoneActions.Enqueue(() => { Initialized = true; });
 
-		Thundagun.QueuePacket(new InitializeMaterialPropertiesPacket(this));
+		Thundagun.QueueHighPriorityPacket(new InitializeMaterialPropertiesPacket(this));
 
-		//foreach (var prop in properties)
-		//{
-			//prop.Initialize(0); // Needed?
-		//}
+		foreach (var prop in properties)
+		{
+			prop.Initialize(-1); // Needed?
+		}
 
 		onDone();
 	}

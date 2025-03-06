@@ -11,10 +11,12 @@ public class Thundagun
 {
 	private static CircularBuffer? buffer;
 	private static CircularBuffer? returnBuffer;
+	//private static CircularBuffer? highPriorityBuffer;
 	private static BufferReadWrite? syncBuffer;
 	private static Process? childProcess;
 	private const bool START_CHILD_PROCESS = false;
 	private static Queue<PacketStruct> packets = new();
+	private static Queue<PacketStruct> highPriorityPackets = new();
 	private static int mainBufferId;
 	public const int MAX_STRING_LENGTH = 256; // UTF8
 	public struct PacketStruct
@@ -31,6 +33,17 @@ public class Thundagun
 		lock (packets)
 		{
 			packets.Enqueue(packetStruct);
+		}
+	}
+	public static void QueueHighPriorityPacket(IUpdatePacket packet, Action callback = null)
+	{
+		//UniLog.Log(packet.ToString());
+		var packetStruct = new PacketStruct();
+		packetStruct.packet = packet;
+		packetStruct.callback = callback;
+		lock (highPriorityPackets)
+		{
+			highPriorityPackets.Enqueue(packetStruct);
 		}
 	}
 	public static void Setup(string[] args)
@@ -62,7 +75,8 @@ public class Thundagun
 
 		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16384, 512); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
-		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 512);
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 16384, 512);
+		//highPriorityBuffer = new CircularBuffer($"HighPriorityBuffer{mainBufferId}", 16384, 512);
 
 		Console.WriteLine("Server: Buffers created.");
 
@@ -74,6 +88,8 @@ public class Thundagun
 			syncBuffer = null;
 			returnBuffer?.Close();
 			returnBuffer = null;
+			//highPriorityBuffer?.Close();
+			//highPriorityBuffer = null;
 		};
 
 		// Send a 'sync message'
@@ -124,6 +140,41 @@ public class Thundagun
 		{
 			try
 			{
+				if (highPriorityPackets.Count > 0)
+				{
+					Queue<PacketStruct> copy;
+					lock (highPriorityPackets)
+					{
+						copy = new Queue<PacketStruct>(highPriorityPackets);
+						highPriorityPackets.Clear();
+					}
+					while (copy.Count > 0)
+					{
+						var packetStruct = copy.Dequeue();
+						var num = packetStruct.packet.Id;
+						buffer.Write(ref num);
+						try
+						{
+							packetStruct.packet.Serialize(buffer);
+							//UniLog.Log($"Serialized {num}");
+						}
+						catch (Exception e)
+						{
+							UniLog.Error($"Exception during high priority serialization: {e}");
+							throw;
+						}
+						try
+						{
+							packetStruct.callback?.Invoke();
+						}
+						catch (Exception e)
+						{
+							UniLog.Error($"Exception running high priority packet queue callback: {e}");
+							throw;
+						}
+					}
+				}
+				//aaa
 				if (packets.Count > 0)
 				{
 					Queue<PacketStruct> copy;
@@ -134,6 +185,40 @@ public class Thundagun
 					}
 					while (copy.Count > 0)
 					{
+						if (highPriorityPackets.Count > 0)
+						{
+							Queue<PacketStruct> highPrioCopy;
+							lock (highPriorityPackets)
+							{
+								highPrioCopy = new Queue<PacketStruct>(highPriorityPackets);
+								highPriorityPackets.Clear();
+							}
+							while (highPrioCopy.Count > 0)
+							{
+								var highPrio = highPrioCopy.Dequeue();
+								var num2 = highPrio.packet.Id;
+								buffer.Write(ref num2);
+								try
+								{
+									highPrio.packet.Serialize(buffer);
+									//UniLog.Log($"Serialized {num}");
+								}
+								catch (Exception e)
+								{
+									UniLog.Error($"Exception during high priority serialization: {e}");
+									throw;
+								}
+								try
+								{
+									highPrio.callback?.Invoke();
+								}
+								catch (Exception e)
+								{
+									UniLog.Error($"Exception running high priority packet queue callback: {e}");
+									throw;
+								}
+							}
+						}
 						var packetStruct = copy.Dequeue();
 						var num = packetStruct.packet.Id;
 						buffer.Write(ref num);

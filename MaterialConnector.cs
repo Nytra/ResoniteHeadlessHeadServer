@@ -19,10 +19,10 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		//Shader = shader;
 		// queue packet
 
-		Engine.Current.GlobalCoroutineManager.RunInSeconds(15, () =>
-		{
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(15, () =>
+		//{
 			
-		});
+		//});
 
 		targetShader = shader;
 		//UniLog.Log($"asset local path: {Asset?.AssetURL?.LocalPath ?? "NULL"} {Asset?.AssetURL?.ToString() ?? "NULL"} {Asset?.AssetURL?.OriginalString ?? "NULL"}");
@@ -73,6 +73,12 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		var thing = new ApplyChangesMaterialConnector(this);
 		Thundagun.QueuePacket(thing);
 
+		//Engine.Current.GlobalCoroutineManager.RunInSeconds(1, () => 
+		//{
+			
+		//});`
+		
+
 		if (!Initialized)
 		{
 			if (!initQueued)
@@ -80,9 +86,19 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 				initQueued = true;
 				markDoneActions.Enqueue(() =>
 				{
+					//Engine.Current.GlobalCoroutineManager.RunInSeconds(5, () => 
+					//{
 
+					//	var elem = Asset.Owner as MaterialProvider;
+					//	var method = elem.GetType().GetMethod("UpdateMaterialAsset", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(elem, new object[] { Asset });
+					//	//var shad = typeof(MaterialProvider).GetField("requestedVariantShader", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(elem);
+					//	//ApplyChanges((Shader)shad, onDone);
+					//	onDone(firstRender);
+					//	firstRender = false;
+					//});
 					onDone(firstRender);
 					firstRender = false;
+
 				});
 			}
 		}
@@ -91,8 +107,14 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 			
 		}
 
-		onDone(firstRender);
+		onDone(true);
 		firstRender = false;
+
+		Engine.Current.GlobalCoroutineManager.RunInSeconds(3, () => 
+		{
+			
+		});
+		
 
 		//Thundagun.QueuePacket(new ApplyChangesMaterialConnector(this));
 

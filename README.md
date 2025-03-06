@@ -6,6 +6,6 @@ This is an attempt to give the Resonite headless server software a graphical out
 
 Put the release files in `Resonite\Headless\HeadlessLibraries`
 
-Use headless launch argument `-LoadAssembly "HeadlessLibraries\ConnectorTest1.dll"`
+Use headless launch argument `-LoadAssembly "HeadlessLibraries\HeadlessHeadServer.dll"`
 
 Unity client repo (Unity 6000.0.41f1): https://github.com/Nytra/ResoniteHeadlessHeadUnity

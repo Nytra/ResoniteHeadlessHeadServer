@@ -25,7 +25,7 @@
   
   <Target Name="CustomCopy" AfterTargets="PostBuildEvent">
   <ItemGroup>
-    <FilesToCopy Include="$(OutputPath)\ConnectorTest1.dll" />
+    <FilesToCopy Include="$(OutputPath)\HeadlessHeadServer.dll" />
   </ItemGroup>
   <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="G:\SteamLibrary\steamapps\common\Resonite\Headless\HeadlessLibraries" />
   </Target>

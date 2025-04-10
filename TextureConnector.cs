@@ -2,7 +2,6 @@
 using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
-using System.Numerics;
 using System.Text;
 
 namespace Thundagun;
@@ -167,13 +166,15 @@ public class TextureConnector : ITexture2DConnector
 		var elem = Asset?.Owner as IWorldElement;
 		if (elem is null && LocalPath == "NULL")
 		{
-			onSet(false);
+			if (onSet != null)
+				onSet(false);
 			return;
 		}
 
 		Thundagun.QueuePacket(new SetPropertiesTextureConnector(this));
 
-		onSet(false);
+		if (onSet != null)
+			onSet(false);
 	}
 
 	// second

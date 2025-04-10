@@ -337,5 +337,8 @@ public enum PacketTypes
 	LoadFromFileShader,
 	ApplyChangesMesh,
 	ApplyChangesMaterial,
-	InitializeMaterialProperties
+	InitializeMaterialProperties,
+	SetFormatTexture,
+	SetPropertiesTexture,
+	SetDataTexture
 }

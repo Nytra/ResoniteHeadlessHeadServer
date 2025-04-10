@@ -21,6 +21,8 @@ public class TextureConnector : ITexture2DConnector
 	public float _mipmapBias;
 	public TextureFormatData _textureFormatData;
 	public TextureUploadData _textureUploadData;
+	public string LocalPath = null;
+	public ulong ownerId;
 
 	int _lastWidth;
 	int _lastHeight;
@@ -142,6 +144,11 @@ public class TextureConnector : ITexture2DConnector
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
+		LocalPath = asset?.AssetURL?.LocalPath ?? "NULL";
+		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		var elem = Asset?.Owner as IWorldElement;
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 	}
 
 	// first
@@ -153,6 +160,16 @@ public class TextureConnector : ITexture2DConnector
 		_wrapU = wrapU;
 		_wrapV = wrapV;
 		_mipmapBias = mipmapBias;
+
+		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		var elem = Asset?.Owner as IWorldElement;
+		if (elem is null && LocalPath == "NULL")
+		{
+			onSet(false);
+			return;
+		}
 
 		Thundagun.QueuePacket(new SetPropertiesTextureConnector(this));
 
@@ -173,14 +190,30 @@ public class TextureConnector : ITexture2DConnector
 		textureFormatData.profile = profile;
 		_textureFormatData = textureFormatData;
 
+		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		var elem = Asset?.Owner as IWorldElement;
+		if (elem is null && LocalPath == "NULL")
+		{
+			callOnDone();
+			return;
+		}
+
 		Thundagun.QueuePacket(new SetFormatTextureConnector(this));
 
-		textureFormatData.onDone(firstRender || _lastWidth != textureFormatData.width || _lastHeight != textureFormatData.height || !_lastFormat.Equals(textureFormatData) || _lastMips > 1 != textureFormatData.mips > 1);
+		callOnDone();
 
 		_lastWidth = textureFormatData.width;
 		_lastHeight = textureFormatData.height;
 		_lastFormat = textureFormatData;
 		_lastMips = textureFormatData.mips;
+
+		void callOnDone()
+		{
+			textureFormatData.onDone(firstRender || _lastWidth != textureFormatData.width || _lastHeight != textureFormatData.height || !_lastFormat.Equals(textureFormatData) || _lastMips > 1 != textureFormatData.mips > 1);
+			firstRender = false;
+		}
 	}
 
 	// third
@@ -193,9 +226,19 @@ public class TextureConnector : ITexture2DConnector
 		textureUploadData.onDone = onSet;
 		_textureUploadData = textureUploadData;
 
+		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		var elem = Asset?.Owner as IWorldElement;
+		if (elem is null && LocalPath == "NULL")
+		{
+			onSet(false);
+			return;
+		}
+
 		Thundagun.QueuePacket(new SetDataTextureConnector(this));
 
-		firstRender = false;
+		onSet(false);
 	}
 
 	public void Unload()
@@ -212,6 +255,8 @@ public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 	TextureWrapMode wrapModeU;
 	TextureWrapMode wrapModeV;
 	float mipMapBias;
+	string localPath;
+	ulong ownerId;
 
 	public SetFormatTextureConnector(TextureConnector owner) : base(owner)
 	{
@@ -223,12 +268,22 @@ public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 		wrapModeU = owner._wrapU;
 		wrapModeV = owner._wrapV;
 		mipMapBias = owner._mipmapBias;
+		localPath = owner.LocalPath;
+		ownerId = owner.ownerId;
 	}
 
 	public override int Id => (int)PacketTypes.SetFormatTexture;
 
 	public override void Deserialize(CircularBuffer buffer)
 	{
+		string localPath2;
+		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
+		buffer.Read(bytes2);
+		localPath2 = Encoding.UTF8.GetString(bytes2);
+
+		ulong ownerId2;
+		buffer.Read(out ownerId2);
+
 		int type;
 		buffer.Read(out type);
 
@@ -268,6 +323,10 @@ public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 
 	public override void Serialize(CircularBuffer buffer)
 	{
+		buffer.Write(Encoding.UTF8.GetBytes(localPath));
+
+		buffer.Write(ref ownerId);
+
 		int type = (int)formatData.type;
 		buffer.Write(ref type);
 
@@ -308,6 +367,8 @@ public class SetPropertiesTextureConnector : UpdatePacket<TextureConnector>
 	TextureWrapMode wrapModeU;
 	TextureWrapMode wrapModeV;
 	float mipMapBias;
+	string localPath;
+	ulong ownerId;
 	public SetPropertiesTextureConnector(TextureConnector owner) : base(owner)
 	{
 		propertiesDirty = owner._texturePropertiesDirty;
@@ -317,12 +378,22 @@ public class SetPropertiesTextureConnector : UpdatePacket<TextureConnector>
 		wrapModeU = owner._wrapU;
 		wrapModeV = owner._wrapV;
 		mipMapBias = owner._mipmapBias;
+		localPath = owner.LocalPath;
+		ownerId = owner.ownerId;
 	}
 
 	public override int Id => (int)PacketTypes.SetPropertiesTexture;
 
 	public override void Deserialize(CircularBuffer buffer)
 	{
+		string localPath2;
+		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
+		buffer.Read(bytes2);
+		localPath2 = Encoding.UTF8.GetString(bytes2);
+
+		ulong ownerId2;
+		buffer.Read(out ownerId2);
+
 		bool propsDirty;
 		buffer.Read(out propsDirty);
 
@@ -347,6 +418,10 @@ public class SetPropertiesTextureConnector : UpdatePacket<TextureConnector>
 
 	public override void Serialize(CircularBuffer buffer)
 	{
+		buffer.Write(Encoding.UTF8.GetBytes(localPath));
+
+		buffer.Write(ref ownerId);
+
 		buffer.Write(ref propertiesDirty);
 
 		if (propertiesDirty)
@@ -370,15 +445,27 @@ public class SetPropertiesTextureConnector : UpdatePacket<TextureConnector>
 public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 {
 	TextureConnector.TextureUploadData uploadData;
+	string localPath;
+	ulong ownerId;
 	public SetDataTextureConnector(TextureConnector owner) : base(owner)
 	{
 		uploadData = owner._textureUploadData;
+		localPath = owner.LocalPath;
+		ownerId = owner.ownerId;
 	}
 
 	public override int Id => (int)PacketTypes.SetDataTexture;
 
 	public override void Deserialize(CircularBuffer buffer)
 	{
+		string localPath2;
+		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
+		buffer.Read(bytes2);
+		localPath2 = Encoding.UTF8.GetString(bytes2);
+
+		ulong ownerId2;
+		buffer.Read(out ownerId2);
+
 		int startMip;
 		buffer.Read(out startMip);
 
@@ -405,6 +492,10 @@ public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 
 	public override void Serialize(CircularBuffer buffer)
 	{
+		buffer.Write(Encoding.UTF8.GetBytes(localPath));
+
+		buffer.Write(ref ownerId);
+
 		buffer.Write(ref uploadData.startMip);
 
 		int format = (int)uploadData.Format;

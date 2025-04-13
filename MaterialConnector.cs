@@ -252,6 +252,14 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 			else if (type == (int)MaterialConnectorBase.ActionType.Texture)
 			{
 				// handle textures here later? needs TextureConnector
+				var tex = obj as ITexture;
+				var texConn = tex?.Connector as TextureConnector;
+
+				var localPath = texConn?.LocalPath ?? "NULL";
+				buffer.WriteString(localPath);
+
+				var ownerId = texConn?.ownerId ?? default;
+				buffer.Write(ref ownerId);
 			}
 		}
 	}

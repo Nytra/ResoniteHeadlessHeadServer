@@ -71,7 +71,7 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16384, 512); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 32768, 256); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
 		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 512);
 		//frameSyncBuffer = new CircularBuffer($"FrameSyncBuffer{mainBufferId}", 2, 4);

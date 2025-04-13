@@ -156,6 +156,13 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 			else if (type == (int)MaterialConnectorBase.ActionType.Texture)
 			{
 				// handle textures here later? needs TextureConnector
+				string localPath;
+				buffer.ReadString(out localPath);
+
+				ulong ownerId;
+				buffer.Read(out ownerId);
+
+				obj = new Tuple<string, ulong>(localPath, ownerId);
 			}
 			action.type = (MaterialConnectorBase.ActionType)type;
 			action.propertyIndex = propertyIndex;

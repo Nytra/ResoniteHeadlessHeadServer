@@ -10,13 +10,19 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 	public string MeshLocalPath;
 	public override void ApplyChanges()
 	{
-		var elem = Owner.Mesh?.Asset?.Owner as IWorldElement;
-		var localPath = Owner.Mesh.Asset?.AssetURL?.LocalPath ?? "NULL";
-		if (elem is null && localPath == "NULL") return;
-		MeshCompId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
-		MeshLocalPath = localPath;
+		Task.Run(async () => 
+		{ 
+			await Task.Delay(100);
 
-		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
+			var elem = Owner.Mesh?.Asset?.Owner as IWorldElement;
+			var localPath = Owner.Mesh.Asset?.AssetURL?.LocalPath ?? "NULL";
+			if (elem is null && localPath == "NULL") return;
+			MeshCompId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+			MeshLocalPath = localPath;
+
+			Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
+		});
+		
 	}
 
 	public override void Destroy(bool destroyingWorld)

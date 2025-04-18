@@ -64,6 +64,9 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 	List<BoneBinding> boneBindings = new();
 	List<Bone> bones = new();
 	List<BlendShapeFrame> blendShapeFrames = new();
+	float2[][] uv2d;
+	float3[][] uv3d;
+	float4[][] uv4d;
 	string localPath;
 	ulong ownerId;
 	BoundingBox bounds;
@@ -145,6 +148,52 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 					{
 						blendShapeFrames.Add(frame);
 					}
+				}
+			}
+
+			int num = MathX.Min(mesh.UV_ChannelCount, 8);
+			uv2d = new float2[num][];
+			uv3d = new float3[num][];
+			uv4d = new float4[num][];
+			for (int i = 0; i < num; i++)
+			{
+				switch (mesh.GetUV_Dimension(i))
+				{
+					case 0:
+						uv2d[i] = null;
+						uv3d[i] = null;
+						uv4d[i] = null;
+						break;
+					case 2:
+						uv2d[i] = new float2[verts.Count];
+						uv3d[i] = null;
+						uv4d[i] = null;
+						break;
+					case 3:
+						uv2d[i] = null;
+						uv3d[i] = new float3[verts.Count];
+						uv4d[i] = null;
+						break;
+					case 4:
+						uv2d[i] = null;
+						uv3d[i] = null;
+						uv4d[i] = new float4[verts.Count];
+						break;
+				}
+			}
+			for (int k = 0; k < num; k++)
+			{
+				switch (mesh.GetUV_Dimension(k))
+				{
+					case 2:
+						mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], verts.Count);
+						break;
+					case 3:
+						mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], verts.Count);
+						break;
+					case 4:
+						mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], verts.Count);
+						break;
 				}
 			}
 		}
@@ -548,6 +597,84 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				int tangentsCount = 0;
 				buffer.Write(ref tangentsCount);
 			}
+		}
+
+		int uv2dcount = uv2d.Length;
+		buffer.Write(ref uv2dcount);
+		int i = 0;
+		foreach (var arr in uv2d)
+		{
+			if (arr != null)
+			{
+				buffer.Write(ref i);
+				foreach (var num in arr)
+				{
+					var x = num.x;
+					buffer.Write(ref x);
+					var y = num.y;
+					buffer.Write(ref y);
+				}
+			}
+			else
+			{
+				int dummy = -999;
+				buffer.Write(ref dummy);
+			}
+			i++;
+		}
+
+		int uv3dcount = uv3d.Length;
+		buffer.Write(ref uv3dcount);
+		int j = 0;
+		foreach (var arr in uv3d)
+		{
+			if (arr != null)
+			{
+				buffer.Write(ref j);
+				foreach (var num in arr)
+				{
+					var x = num.x;
+					buffer.Write(ref x);
+					var y = num.y;
+					buffer.Write(ref y);
+					var z = num.z;
+					buffer.Write(ref z);
+				}
+			}
+			else
+			{
+				int dummy = -999;
+				buffer.Write(ref dummy);
+			}
+			j++;
+		}
+
+		int uv4dcount = uv4d.Length;
+		buffer.Write(ref uv4dcount);
+		int k = 0;
+		foreach (var arr in uv4d)
+		{
+			if (arr != null)
+			{
+				buffer.Write(ref k);
+				foreach (var num in arr)
+				{
+					var x = num.x;
+					buffer.Write(ref x);
+					var y = num.y;
+					buffer.Write(ref y);
+					var z = num.z;
+					buffer.Write(ref z);
+					var w = num.w;
+					buffer.Write(ref w);
+				}
+			}
+			else
+			{
+				int dummy = -999;
+				buffer.Write(ref dummy);
+			}
+			k++;
 		}
 	}
 }

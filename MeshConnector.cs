@@ -375,6 +375,60 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				buffer.Read(out tz);
 			}
 		}
+
+		int uv2dcount;
+		buffer.Read(out uv2dcount);
+		for (int uv2d = 0; uv2d < uv2dcount; uv2d++)
+		{
+			int uvId;
+			buffer.Read(out uvId);
+			if (uvId == -999) continue;
+			for (int x2 = 0; x2 < vertCount; x2++)
+			{
+				float x;
+				buffer.Read(out x);
+				float y;
+				buffer.Read(out y);
+			}
+		}
+
+		int uv3dcount;
+		buffer.Read(out uv3dcount);
+		for (int uv3d = 0; uv3d < uv3dcount; uv3d++)
+		{
+			int uvId;
+			buffer.Read(out uvId);
+			if (uvId == -999) continue;
+			for (int x2 = 0; x2 < vertCount; x2++)
+			{
+				float x;
+				buffer.Read(out x);
+				float y;
+				buffer.Read(out y);
+				float z;
+				buffer.Read(out z);
+			}
+		}
+
+		int uv4dcount;
+		buffer.Read(out uv4dcount);
+		for (int uv4d = 0; uv4d < uv4dcount; uv4d++)
+		{
+			int uvId;
+			buffer.Read(out uvId);
+			if (uvId == -999) continue;
+			for (int x2 = 0; x2 < vertCount; x2++)
+			{
+				float x;
+				buffer.Read(out x);
+				float y;
+				buffer.Read(out y);
+				float z;
+				buffer.Read(out z);
+				float w;
+				buffer.Read(out w);
+			}
+		}
 	}
 
 	public override void Serialize(CircularBuffer buffer)

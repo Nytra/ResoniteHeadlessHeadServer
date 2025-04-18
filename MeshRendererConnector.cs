@@ -12,11 +12,12 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 	{
 		Task.Run(async () => 
 		{ 
-			await Task.Delay(100);
+			await Task.Delay(1000);
 
 			var elem = Owner.Mesh?.Asset?.Owner as IWorldElement;
 			var localPath = Owner.Mesh?.Asset?.AssetURL?.LocalPath ?? "NULL";
 			if (elem is null && localPath == "NULL") return;
+			//if (elem is null) return;
 			MeshCompId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 			MeshLocalPath = localPath;
 
@@ -59,6 +60,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 	ulong meshCompId;
 	List<float> blendShapeWeights = new();
 	public bool enabled;
+	public ulong rendId;
 
 	public ApplyChangesMeshRendererConnector(MeshRendererConnectorBase<T> owner) : base(owner)
 	{
@@ -71,6 +73,7 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		if (meshPath.Length > Thundagun.MAX_STRING_LENGTH)
 			meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
 		enabled = owner.Owner.Enabled;
+		rendId = (owner.Owner.ReferenceID.Position << 8) | (owner.Owner.ReferenceID.User & 0xFFul);
 
 		int i = 0;
 		foreach (var mat in owner.Owner.Materials)
@@ -155,6 +158,8 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 	public override void Deserialize(CircularBuffer buffer)
 	{
+		buffer.Read(out rendId);
+
 		buffer.Read(out slotRefId);
 		buffer.Read(out worldId);
 		buffer.Read(out isSkinned);
@@ -213,6 +218,8 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 	public override void Serialize(CircularBuffer buffer)
 	{
+		buffer.Write(ref rendId);
+
 		buffer.Write(ref slotRefId);
 		buffer.Write(ref worldId);
 		buffer.Write(ref isSkinned);

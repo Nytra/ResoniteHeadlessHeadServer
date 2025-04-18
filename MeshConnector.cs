@@ -54,7 +54,7 @@ public class MeshConnector : IMeshConnector
 	}
 }
 
-public struct UnityMeshIndicies
+public struct MeshIndicies
 {
 	public int topology;
 
@@ -68,7 +68,7 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 	List<float4> tangents = new();
 	List<color> colors = new();
 	//List<int> triangleIndices = new();
-	List<UnityMeshIndicies> submeshes = new();
+	List<MeshIndicies> submeshes = new();
 	List<BoneBinding> boneBindings = new();
 	List<Bone> bones = new();
 	List<BlendShapeFrame> blendShapeFrames = new();
@@ -141,23 +141,23 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				Submesh submesh = mesh.GetSubmesh(i);
 				if (submesh == null)
 				{
-					UnityMeshIndicies u2 = new UnityMeshIndicies();
-					submeshes.Add(u2);
+					MeshIndicies defaultIndices = new MeshIndicies();
+					submeshes.Add(defaultIndices);
 					continue;
 				}
-				UnityMeshIndicies unity = new();
-				unity.topology = (int)submesh.Topology;
+				MeshIndicies indicies = new();
+				indicies.topology = (int)submesh.Topology;
 				if (submesh.RawIndicies != null && submesh.RawIndicies.Length > 0)
 				{
-					unity.indicies = new int[submesh.RawIndicies.Length];
+					indicies.indicies = new int[submesh.RawIndicies.Length];
 					int j = 0;
 					foreach (var index in submesh.RawIndicies)
 					{
-						unity.indicies[j] = index;
+						indicies.indicies[j] = index;
 						j++;
 					}
 				}
-				submeshes.Add(unity);
+				submeshes.Add(indicies);
 			}
 
 

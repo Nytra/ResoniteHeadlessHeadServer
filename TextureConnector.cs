@@ -519,6 +519,7 @@ public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 		int arrLen = uploadData.bitmap2D.RawData.Length;
 		buffer.Write(ref arrLen);
 
+		//buffer.Write(uploadData.bitmap2D.RawData);
 		foreach (var byt in uploadData.bitmap2D.RawData)
 		{
 			byte byt2 = byt;

@@ -54,13 +54,21 @@ public class MeshConnector : IMeshConnector
 	}
 }
 
+public struct UnityMeshIndicies
+{
+	public int topology;
+
+	public int[] indicies;
+}
+
 public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 {
 	List<float3> verts = new();
 	List<float3> normals = new();
 	List<float4> tangents = new();
 	List<color> colors = new();
-	List<int> triangleIndices = new();
+	//List<int> triangleIndices = new();
+	List<UnityMeshIndicies> submeshes = new();
 	List<BoneBinding> boneBindings = new();
 	List<Bone> bones = new();
 	List<BlendShapeFrame> blendShapeFrames = new();
@@ -107,21 +115,39 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			{
 				foreach (var color in mesh.RawColors)
 				{
-					colors.Add(new color(color.r, color.g, color.b, color.a));
+					if (mesh.Profile != ColorProfile.Linear)
+						colors.Add(color.ToLinear(mesh.Profile));
+					else
+						colors.Add(new color(color.r, color.g, color.b, color.a));
 				}
 			}
 
-			var triSms = mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh);
-			foreach (var sm in triSms)
+			//var triSms = mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh);
+			//foreach (var sm in triSms)
+			//{
+				//var triSm = (TriangleSubmesh)sm;
+				//for (int i = 0; i < triSm.Count; i++)
+				//{
+					//var tri = triSm.GetTriangle(i);
+					//triangleIndices.Add(tri.Vertex0Index);
+					//triangleIndices.Add(tri.Vertex1Index);
+					//triangleIndices.Add(tri.Vertex2Index);
+				//}
+			//}
+
+			for (int i = 0; i < mesh.SubmeshCount; i++)
 			{
-				var triSm = (TriangleSubmesh)sm;
-				for (int i = 0; i < triSm.Count; i++)
+				Submesh submesh = mesh.GetSubmesh(i);
+				UnityMeshIndicies unity = new();
+				unity.topology = (int)submesh.Topology;
+				unity.indicies = new int[submesh.RawIndicies.Length];
+				int j = 0;
+				foreach (var index in submesh.RawIndicies)
 				{
-					var tri = triSm.GetTriangle(i);
-					triangleIndices.Add(tri.Vertex0Index);
-					triangleIndices.Add(tri.Vertex1Index);
-					triangleIndices.Add(tri.Vertex2Index);
+					unity.indicies[j] = index;
+					j++;
 				}
+				submeshes.Add(unity);
 			}
 
 			if (mesh.RawBoneBindings != null)
@@ -261,16 +287,33 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			buffer.Read(out a);
 		}
 
-		int triangleIndexCount;
-		buffer.Read(out triangleIndexCount);
-		for (int i = 0; i < triangleIndexCount / 3; i++)
+		//int triangleIndexCount;
+		//buffer.Read(out triangleIndexCount);
+		//for (int i = 0; i < triangleIndexCount / 3; i++)
+		//{
+		//int i0;
+		//buffer.Read(out i0);
+		//int i1;
+		//buffer.Read(out i1);
+		//int i2;
+		//buffer.Read(out i2);
+		//}
+
+		int submeshCount;
+		buffer.Read(out submeshCount);
+		for (int i = 0; i < submeshCount; i++)
 		{
-			int i0;
-			buffer.Read(out i0);
-			int i1;
-			buffer.Read(out i1);
-			int i2;
-			buffer.Read(out i2);
+			int topology;
+			buffer.Read(out topology);
+
+			int indexCount;
+			buffer.Read(out indexCount);
+
+			for (int j = 0;  j < indexCount; j++)
+			{
+				int ind2;
+				buffer.Read(out ind2);
+			}
 		}
 
 		int boneBindingCount;
@@ -490,12 +533,29 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			buffer.Write(ref a);
 		}
 
-		int triangleIndexCount = triangleIndices.Count;
-		buffer.Write(ref triangleIndexCount);
-		foreach (var idx in triangleIndices)
+		//int triangleIndexCount = triangleIndices.Count;
+		//buffer.Write(ref triangleIndexCount);
+		//foreach (var idx in triangleIndices)
+		//{
+			//int idx2 = idx;
+			//buffer.Write(ref idx2);
+		//}
+
+		int submeshCount = submeshes.Count;
+		buffer.Write(ref submeshCount);
+		foreach (var submesh in submeshes)
 		{
-			int idx2 = idx;
-			buffer.Write(ref idx2);
+			int topology = submesh.topology;
+			buffer.Write(ref topology);
+
+			int indexCount = submesh.indicies.Length;
+			buffer.Write(ref indexCount);
+
+			foreach (var ind in submesh.indicies)
+			{
+				int ind2 = ind;
+				buffer.Write(ref ind2);
+			}
 		}
 
 		int boneBindingCount = boneBindings.Count;

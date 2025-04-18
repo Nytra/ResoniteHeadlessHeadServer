@@ -171,6 +171,8 @@ public class TextureConnector : ITexture2DConnector
 			return;
 		}
 
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+
 		Thundagun.QueuePacket(new SetPropertiesTextureConnector(this));
 
 		if (onSet != null)
@@ -194,12 +196,15 @@ public class TextureConnector : ITexture2DConnector
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
 		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
 			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+
 		var elem = Asset?.Owner as IWorldElement;
 		if (elem is null && LocalPath == "NULL")
 		{
 			callOnDone();
 			return;
 		}
+
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 
 		Thundagun.QueuePacket(new SetFormatTextureConnector(this));
 
@@ -236,6 +241,8 @@ public class TextureConnector : ITexture2DConnector
 			onSet(false);
 			return;
 		}
+
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 
 		Thundagun.QueuePacket(new SetDataTextureConnector(this));
 

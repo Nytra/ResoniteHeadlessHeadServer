@@ -84,6 +84,7 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		ownerId = owner.ownerId;
 		MeshX mesh = owner.Mesh;
 		bounds = owner.Bounds;
+
 		if (mesh != null)
 		{
 			if (mesh.RawPositions != null)
@@ -125,30 +126,40 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			//var triSms = mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh);
 			//foreach (var sm in triSms)
 			//{
-				//var triSm = (TriangleSubmesh)sm;
-				//for (int i = 0; i < triSm.Count; i++)
-				//{
-					//var tri = triSm.GetTriangle(i);
-					//triangleIndices.Add(tri.Vertex0Index);
-					//triangleIndices.Add(tri.Vertex1Index);
-					//triangleIndices.Add(tri.Vertex2Index);
-				//}
+			//var triSm = (TriangleSubmesh)sm;
+			//for (int i = 0; i < triSm.Count; i++)
+			//{
+			//var tri = triSm.GetTriangle(i);
+			//triangleIndices.Add(tri.Vertex0Index);
+			//triangleIndices.Add(tri.Vertex1Index);
+			//triangleIndices.Add(tri.Vertex2Index);
+			//}
 			//}
 
 			for (int i = 0; i < mesh.SubmeshCount; i++)
 			{
 				Submesh submesh = mesh.GetSubmesh(i);
+				if (submesh == null)
+				{
+					UnityMeshIndicies u2 = new UnityMeshIndicies();
+					submeshes.Add(u2);
+					continue;
+				}
 				UnityMeshIndicies unity = new();
 				unity.topology = (int)submesh.Topology;
-				unity.indicies = new int[submesh.RawIndicies.Length];
-				int j = 0;
-				foreach (var index in submesh.RawIndicies)
+				if (submesh.RawIndicies != null && submesh.RawIndicies.Length > 0)
 				{
-					unity.indicies[j] = index;
-					j++;
+					unity.indicies = new int[submesh.RawIndicies.Length];
+					int j = 0;
+					foreach (var index in submesh.RawIndicies)
+					{
+						unity.indicies[j] = index;
+						j++;
+					}
 				}
 				submeshes.Add(unity);
 			}
+
 
 			if (mesh.RawBoneBindings != null)
 			{
@@ -207,19 +218,23 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 						break;
 				}
 			}
-			for (int k = 0; k < num; k++)
+
+			if (verts.Count > 0)
 			{
-				switch (mesh.GetUV_Dimension(k))
+				for (int k = 0; k < num; k++)
 				{
-					case 2:
-						mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], verts.Count);
-						break;
-					case 3:
-						mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], verts.Count);
-						break;
-					case 4:
-						mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], verts.Count);
-						break;
+					switch (mesh.GetUV_Dimension(k))
+					{
+						case 2:
+							mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], verts.Count);
+							break;
+						case 3:
+							mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], verts.Count);
+							break;
+						case 4:
+							mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], verts.Count);
+							break;
+					}
 				}
 			}
 		}
@@ -548,13 +563,16 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			int topology = submesh.topology;
 			buffer.Write(ref topology);
 
-			int indexCount = submesh.indicies.Length;
+			int indexCount = submesh.indicies?.Length ?? 0;
 			buffer.Write(ref indexCount);
 
-			foreach (var ind in submesh.indicies)
+			if (submesh.indicies != null)
 			{
-				int ind2 = ind;
-				buffer.Write(ref ind2);
+				foreach (var ind in submesh.indicies)
+				{
+					int ind2 = ind;
+					buffer.Write(ref ind2);
+				}
 			}
 		}
 

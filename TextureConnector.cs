@@ -519,11 +519,26 @@ public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 		int arrLen = uploadData.bitmap2D.RawData.Length;
 		buffer.Write(ref arrLen);
 
-		//buffer.Write(uploadData.bitmap2D.RawData);
-		foreach (var byt in uploadData.bitmap2D.RawData)
-		{
-			byte byt2 = byt;
-			buffer.Write(ref byt2);
-		}
+		buffer.Write(uploadData.bitmap2D.RawData, timeout: 5000);
+
+		//int sliceSize = Math.Min(arrLen, 65536);
+		//int i = 0;
+		////UniLog.Log($"textureDebug. sliceSize: {sliceSize}, arrLen: {arrLen}");
+		//while (i < arrLen - sliceSize)
+		//{
+		//	//UniLog.Log($"in loop.");
+		//	byte[] buf = new byte[sliceSize];
+		//	Array.Copy(uploadData.bitmap2D.RawData, i, buf, 0, sliceSize);
+		//	buffer.Write(buf);
+		//	i += sliceSize;
+		//	sliceSize = Math.Min(arrLen - i, 65536);
+		//	//UniLog.Log($"{i}, {sliceSize}");
+		//}
+
+		//foreach (var byt in uploadData.bitmap2D.RawData)
+		//{
+			//byte byt2 = byt;
+			//buffer.Write(ref byt2);
+		//}
 	}
 }

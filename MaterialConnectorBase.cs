@@ -150,29 +150,16 @@ public class InitializeMaterialPropertiesPacket : UpdatePacket<MaterialConnector
 
 	public override int Id => (int)PacketTypes.InitializeMaterialProperties;
 
-	public override void Deserialize(CircularBuffer buffer)
-	{
-		int idCount;
-		buffer.Read(out idCount);
-		PropertyIds = new();
-		for (int i = 0; i < idCount; i++)
-		{
-			int id;
-			buffer.Read(out id);
-			PropertyIds.Add(id);
-		}
-	}
-
-	public override void Serialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
 		int propCount = PropertyNames.Count;
-		buffer.Write(ref propCount);
+		buffer.Write(propCount);
 		foreach (var str in PropertyNames)
 		{
 			string newStr = str;
 			if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
 				newStr = str.Substring(0, Math.Min(str.Length, Thundagun.MAX_STRING_LENGTH));
-			buffer.WriteString(newStr);
+			buffer.WriteString2(newStr);
 		}
 	}
 }

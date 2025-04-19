@@ -282,87 +282,40 @@ public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 
 	public override int Id => (int)PacketTypes.SetFormatTexture;
 
-	public override void Deserialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		string localPath2;
-		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes2);
-		localPath2 = Encoding.UTF8.GetString(bytes2);
+		buffer.WriteString2(localPath);
 
-		ulong ownerId2;
-		buffer.Read(out ownerId2);
-
-		int type;
-		buffer.Read(out type);
-
-		int format;
-		buffer.Read(out format);
-
-		int width;
-		buffer.Read(out width);
-
-		int height;
-		buffer.Read(out height);
-
-		int mips;
-		buffer.Read(out mips);
-
-		bool propsDirty;
-		buffer.Read(out propsDirty);
-
-		if (propsDirty)
-		{
-			int filter;
-			buffer.Read(out filter);
-
-			int aniso;
-			buffer.Read(out aniso);
-
-			int wrapU;
-			buffer.Read(out wrapU);
-
-			int wrapV;
-			buffer.Read(out wrapV);
-
-			float mipBias;
-			buffer.Read(out mipBias);
-		}
-	}
-
-	public override void Serialize(CircularBuffer buffer)
-	{
-		buffer.Write(Encoding.UTF8.GetBytes(localPath));
-
-		buffer.Write(ref ownerId);
+		buffer.Write(ownerId);
 
 		int type = (int)formatData.type;
-		buffer.Write(ref type);
+		buffer.Write(type);
 
 		int format = (int)formatData.format;
-		buffer.Write(ref format);
+		buffer.Write(format);
 
-		buffer.Write(ref formatData.width);
+		buffer.Write(formatData.width);
 
-		buffer.Write(ref formatData.height);
+		buffer.Write(formatData.height);
 
-		buffer.Write(ref formatData.mips);
+		buffer.Write(formatData.mips);
 
-		buffer.Write(ref propertiesDirty);
+		buffer.Write(propertiesDirty);
 
 		if (propertiesDirty)
 		{
 			int filter = (int)filterMode;
-			buffer.Write(ref filter);
+			buffer.Write(filter);
 
-			buffer.Write(ref anisoLevel);
+			buffer.Write(anisoLevel);
 
 			int wrapU = (int)wrapModeU;
-			buffer.Write(ref wrapU);
+			buffer.Write(wrapU);
 
 			int wrapV = (int)wrapModeV;
-			buffer.Write(ref wrapV);
+			buffer.Write(wrapV);
 
-			buffer.Write(ref mipMapBias);
+			buffer.Write(mipMapBias);
 		}
 	}
 }
@@ -392,60 +345,28 @@ public class SetPropertiesTextureConnector : UpdatePacket<TextureConnector>
 
 	public override int Id => (int)PacketTypes.SetPropertiesTexture;
 
-	public override void Deserialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		string localPath2;
-		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes2);
-		localPath2 = Encoding.UTF8.GetString(bytes2);
+		buffer.WriteString2(localPath);
 
-		ulong ownerId2;
-		buffer.Read(out ownerId2);
+		buffer.Write(ownerId);
 
-		bool propsDirty;
-		buffer.Read(out propsDirty);
-
-		if (propsDirty)
-		{
-			int filter;
-			buffer.Read(out filter);
-
-			int aniso;
-			buffer.Read(out aniso);
-
-			int wrapU;
-			buffer.Read(out wrapU);
-
-			int wrapV;
-			buffer.Read(out wrapV);
-
-			float mipBias;
-			buffer.Read(out mipBias);
-		}
-	}
-
-	public override void Serialize(CircularBuffer buffer)
-	{
-		buffer.Write(Encoding.UTF8.GetBytes(localPath));
-
-		buffer.Write(ref ownerId);
-
-		buffer.Write(ref propertiesDirty);
+		buffer.Write(propertiesDirty);
 
 		if (propertiesDirty)
 		{
 			int filter = (int)filterMode;
-			buffer.Write(ref filter);
+			buffer.Write(filter);
 
-			buffer.Write(ref anisoLevel);
+			buffer.Write(anisoLevel);
 
 			int wrapU = (int)wrapModeU;
-			buffer.Write(ref wrapU);
+			buffer.Write(wrapU);
 
 			int wrapV = (int)wrapModeV;
-			buffer.Write(ref wrapV);
+			buffer.Write(wrapV);
 
-			buffer.Write(ref mipMapBias);
+			buffer.Write(mipMapBias);
 		}
 	}
 }
@@ -464,66 +385,33 @@ public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 
 	public override int Id => (int)PacketTypes.SetDataTexture;
 
-	public override void Deserialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		string localPath2;
-		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes2);
-		localPath2 = Encoding.UTF8.GetString(bytes2);
+		buffer.WriteString2(localPath);
 
-		ulong ownerId2;
-		buffer.Read(out ownerId2);
+		buffer.Write(ownerId);
 
-		int startMip;
-		buffer.Read(out startMip);
-
-		int format;
-		buffer.Read(out format);
-
-		double bitsPerPixel;
-		buffer.Read(out bitsPerPixel);
-
-		bool readable;
-		buffer.Read(out readable);
-
-		// read bitmap2d
-
-		int arrLen;
-		buffer.Read(out arrLen);
-
-		for (int i = 0; i < arrLen; i++)
-		{
-			byte byt;
-			buffer.Read(out byt);
-		}
-	}
-
-	public override void Serialize(CircularBuffer buffer)
-	{
-		buffer.Write(Encoding.UTF8.GetBytes(localPath));
-
-		buffer.Write(ref ownerId);
-
-		buffer.Write(ref uploadData.startMip);
+		buffer.Write(uploadData.startMip);
 
 		int format = (int)uploadData.Format;
-		buffer.Write(ref format);
+		buffer.Write(format);
 
 		double bitsPerPixel = uploadData.Format.GetBitsPerPixel();
-		buffer.Write(ref bitsPerPixel);
+		buffer.Write(bitsPerPixel);
 
-		buffer.Write(ref uploadData.hint2D.readable);
+		buffer.Write(uploadData.hint2D.readable);
 
 		// write bitmap2d
 
 		int arrLen = uploadData.bitmap2D.RawData.Length;
-		buffer.Write(ref arrLen);
+		buffer.Write(arrLen);
 
-		//buffer.Write(uploadData.bitmap2D.RawData);
-		foreach (var byt in uploadData.bitmap2D.RawData)
-		{
-			byte byt2 = byt;
-			buffer.Write(ref byt2);
-		}
+		buffer.Write(uploadData.bitmap2D.RawData);
+
+		//foreach (var byt in uploadData.bitmap2D.RawData)
+		//{
+			//byte byt2 = byt;
+			//buffer.Write(byt2);
+		//}
 	}
 }

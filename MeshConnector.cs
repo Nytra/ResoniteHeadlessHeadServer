@@ -242,310 +242,63 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 
 	public override int Id => (int)PacketTypes.ApplyChangesMesh;
 
-	public override void Deserialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes2);
-		localPath = Encoding.UTF8.GetString(bytes2);
+		buffer.WriteString2(localPath);
 
-		buffer.Read(out ownerId);
-
-		int vertCount;
-		buffer.Read(out vertCount);
-		for (int i = 0; i < vertCount; i++)
-		{
-			float x;
-			buffer.Read(out x);
-			float y;
-			buffer.Read(out y);
-			float z;
-			buffer.Read(out z);
-		}
-
-		int normalCount;
-		buffer.Read(out normalCount);
-		for (int i = 0; i < normalCount; i++)
-		{
-			float x;
-			buffer.Read(out x);
-			float y;
-			buffer.Read(out y);
-			float z;
-			buffer.Read(out z);
-		}
-
-		int tangentCount;
-		buffer.Read(out tangentCount);
-		for (int i = 0; i < tangentCount; i++)
-		{
-			float x;
-			buffer.Read(out x);
-			float y;
-			buffer.Read(out y);
-			float z;
-			buffer.Read(out z);
-			float w;
-			buffer.Read(out w);
-		}
-
-		int colorCount;
-		buffer.Read(out colorCount);
-		for (int i = 0; i < colorCount; i++)
-		{
-			float r;
-			buffer.Read(out r);
-			float g;
-			buffer.Read(out g);
-			float b;
-			buffer.Read(out b);
-			float a;
-			buffer.Read(out a);
-		}
-
-		//int triangleIndexCount;
-		//buffer.Read(out triangleIndexCount);
-		//for (int i = 0; i < triangleIndexCount / 3; i++)
-		//{
-		//int i0;
-		//buffer.Read(out i0);
-		//int i1;
-		//buffer.Read(out i1);
-		//int i2;
-		//buffer.Read(out i2);
-		//}
-
-		int submeshCount;
-		buffer.Read(out submeshCount);
-		for (int i = 0; i < submeshCount; i++)
-		{
-			int topology;
-			buffer.Read(out topology);
-
-			int indexCount;
-			buffer.Read(out indexCount);
-
-			for (int j = 0;  j < indexCount; j++)
-			{
-				int ind2;
-				buffer.Read(out ind2);
-			}
-		}
-
-		int boneBindingCount;
-		buffer.Read(out boneBindingCount);
-		for (int i = 0; i < boneBindingCount; i++)
-		{
-			int i0;
-			buffer.Read(out i0);
-			int i1;
-			buffer.Read(out i1);
-			int i2;
-			buffer.Read(out i2);
-			int i3;
-			buffer.Read(out i3);
-
-			float w0;
-			buffer.Read(out w0);
-			float w1;
-			buffer.Read(out w1);
-			float w2;
-			buffer.Read(out w2);
-			float w3;
-			buffer.Read(out w3);
-		}
-
-		int boneCount;
-		buffer.Read(out boneCount);
-		for (int i = 0; i < boneCount; i++)
-		{
-			float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
-
-			buffer.Read(out f0);
-			buffer.Read(out f1);
-			buffer.Read(out f2);
-			buffer.Read(out f3);
-
-			buffer.Read(out f4);
-			buffer.Read(out f5);
-			buffer.Read(out f6);
-			buffer.Read(out f7);
-
-			buffer.Read(out f8);
-			buffer.Read(out f9);
-			buffer.Read(out f10);
-			buffer.Read(out f11);
-
-			buffer.Read(out f12);
-			buffer.Read(out f13);
-			buffer.Read(out f14);
-			buffer.Read(out f15);
-		}
-
-		float cx, cy, cz;
-		buffer.Read(out cx);
-		buffer.Read(out cy);
-		buffer.Read(out cz);
-
-		float sx, sy, sz;
-		buffer.Read(out sx);
-		buffer.Read(out sy);
-		buffer.Read(out sz);
-
-		int blendShapeFrameCount;
-		buffer.Read(out blendShapeFrameCount);
-		for (int i = 0; i < blendShapeFrameCount; i++)
-		{
-			string name;
-			var bytes3 = new byte[Thundagun.MAX_STRING_LENGTH];
-			buffer.Read(bytes3);
-			name = Encoding.UTF8.GetString(bytes3);
-
-			float weight;
-			buffer.Read(out weight);
-
-			int positionsCount;
-			buffer.Read(out positionsCount);
-			for (int i2 = 0; i2 < positionsCount; i2++)
-			{
-				float px, py, pz;
-				buffer.Read(out px);
-				buffer.Read(out py);
-				buffer.Read(out pz);
-			}
-
-			int normalsCount;
-			buffer.Read(out normalsCount);
-			for (int i2 = 0; i2 < normalsCount; i2++)
-			{
-				float nx, ny, nz;
-				buffer.Read(out nx);
-				buffer.Read(out ny);
-				buffer.Read(out nz);
-			}
-
-			int tangentsCount;
-			buffer.Read(out tangentsCount);
-			for (int i2 = 0; i2 < tangentsCount; i2++)
-			{
-				float tx, ty, tz;
-				buffer.Read(out tx);
-				buffer.Read(out ty);
-				buffer.Read(out tz);
-			}
-		}
-
-		int uv2dcount;
-		buffer.Read(out uv2dcount);
-		for (int uv2d = 0; uv2d < uv2dcount; uv2d++)
-		{
-			int uvId;
-			buffer.Read(out uvId);
-			if (uvId == -999) continue;
-			for (int x2 = 0; x2 < vertCount; x2++)
-			{
-				float x;
-				buffer.Read(out x);
-				float y;
-				buffer.Read(out y);
-			}
-		}
-
-		int uv3dcount;
-		buffer.Read(out uv3dcount);
-		for (int uv3d = 0; uv3d < uv3dcount; uv3d++)
-		{
-			int uvId;
-			buffer.Read(out uvId);
-			if (uvId == -999) continue;
-			for (int x2 = 0; x2 < vertCount; x2++)
-			{
-				float x;
-				buffer.Read(out x);
-				float y;
-				buffer.Read(out y);
-				float z;
-				buffer.Read(out z);
-			}
-		}
-
-		int uv4dcount;
-		buffer.Read(out uv4dcount);
-		for (int uv4d = 0; uv4d < uv4dcount; uv4d++)
-		{
-			int uvId;
-			buffer.Read(out uvId);
-			if (uvId == -999) continue;
-			for (int x2 = 0; x2 < vertCount; x2++)
-			{
-				float x;
-				buffer.Read(out x);
-				float y;
-				buffer.Read(out y);
-				float z;
-				buffer.Read(out z);
-				float w;
-				buffer.Read(out w);
-			}
-		}
-	}
-
-	public override void Serialize(CircularBuffer buffer)
-	{
-		buffer.Write(Encoding.UTF8.GetBytes(localPath));
-
-		buffer.Write(ref ownerId);
+		buffer.Write(ownerId);
 
 		int vertCount = verts.Count;
-		buffer.Write(ref vertCount);
+		buffer.Write(vertCount);
 		//UniLog.Log($"Writing {vertCount * 3} vertex values to the buffer");
 		foreach (var vert in verts)
 		{
 			float x = vert.x;
-			buffer.Write(ref x);
+			buffer.Write(x);
 			float y = vert.y;
-			buffer.Write(ref y);
+			buffer.Write(y);
 			float z = vert.z;
-			buffer.Write(ref z);
+			buffer.Write(z);
 		}
 
 		int normalCount = normals.Count;
-		buffer.Write(ref normalCount);
+		buffer.Write(normalCount);
 		foreach (var normal in normals)
 		{
 			float x = normal.x;
-			buffer.Write(ref x);
+			buffer.Write(x);
 			float y = normal.y;
-			buffer.Write(ref y);
+			buffer.Write(y);
 			float z = normal.z;
-			buffer.Write(ref z);
+			buffer.Write(z);
 		}
 
 		int tangentCount = tangents.Count;
-		buffer.Write(ref tangentCount);
+		buffer.Write(tangentCount);
 		foreach (var tangent in tangents)
 		{
 			float x = tangent.x;
-			buffer.Write(ref x);
+			buffer.Write(x);
 			float y = tangent.y;
-			buffer.Write(ref y);
+			buffer.Write(y);
 			float z = tangent.z;
-			buffer.Write(ref z);
+			buffer.Write(z);
 			float w = tangent.w;
-			buffer.Write(ref w);
+			buffer.Write(w);
 		}
 
 		int colorCount = colors.Count;
-		buffer.Write(ref colorCount);
+		buffer.Write(colorCount);
 		foreach (var color in colors)
 		{
 			float r = color.r;
-			buffer.Write(ref r);
+			buffer.Write(r);
 			float g = color.g;
-			buffer.Write(ref g);
+			buffer.Write(g);
 			float b = color.b;
-			buffer.Write(ref b);
+			buffer.Write(b);
 			float a = color.a;
-			buffer.Write(ref a);
+			buffer.Write(a);
 		}
 
 		//int triangleIndexCount = triangleIndices.Count;
@@ -557,254 +310,254 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		//}
 
 		int submeshCount = submeshes.Count;
-		buffer.Write(ref submeshCount);
+		buffer.Write(submeshCount);
 		foreach (var submesh in submeshes)
 		{
 			int topology = submesh.topology;
-			buffer.Write(ref topology);
+			buffer.Write(topology);
 
 			int indexCount = submesh.indicies?.Length ?? 0;
-			buffer.Write(ref indexCount);
+			buffer.Write(indexCount);
 
 			if (submesh.indicies != null)
 			{
 				foreach (var ind in submesh.indicies)
 				{
 					int ind2 = ind;
-					buffer.Write(ref ind2);
+					buffer.Write(ind2);
 				}
 			}
 		}
 
 		int boneBindingCount = boneBindings.Count;
-		buffer.Write(ref boneBindingCount);
+		buffer.Write(boneBindingCount);
 		foreach (var boneBinding in boneBindings)
 		{
 			int i0 = boneBinding.boneIndex0;
-			buffer.Write(ref i0);
+			buffer.Write(i0);
 			int i1 = boneBinding.boneIndex1;
-			buffer.Write(ref i1);
+			buffer.Write(i1);
 			int i2 = boneBinding.boneIndex2;
-			buffer.Write(ref i2);
+			buffer.Write(i2);
 			int i3 = boneBinding.boneIndex3;
-			buffer.Write(ref i3);
+			buffer.Write(i3);
 
 			float w0 = boneBinding.weight0;
-			buffer.Write(ref w0);
+			buffer.Write(w0);
 			float w1 = boneBinding.weight1;
-			buffer.Write(ref w1);
+			buffer.Write(w1);
 			float w2 = boneBinding.weight2;
-			buffer.Write(ref w2);
+			buffer.Write(w2);
 			float w3 = boneBinding.weight3;
-			buffer.Write(ref w3);
+			buffer.Write(w3);
 		}
 
 		int boneCount = bones.Count;
-		buffer.Write(ref boneCount);
+		buffer.Write(boneCount);
 		foreach (var bone in bones)
 		{
 			float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
 
 			f0 = bone.BindPose.m00;
-			buffer.Write(ref f0);
+			buffer.Write(f0);
 			f1 = bone.BindPose.m01;
-			buffer.Write(ref f1);
+			buffer.Write(f1);
 			f2 = bone.BindPose.m02;
-			buffer.Write(ref f2);
+			buffer.Write(f2);
 			f3 = bone.BindPose.m03;
-			buffer.Write(ref f3);
+			buffer.Write(f3);
 
 			f4 = bone.BindPose.m10;
-			buffer.Write(ref f4);
+			buffer.Write(f4);
 			f5 = bone.BindPose.m11;
-			buffer.Write(ref f5);
+			buffer.Write(f5);
 			f6 = bone.BindPose.m12;
-			buffer.Write(ref f6);
+			buffer.Write(f6);
 			f7 = bone.BindPose.m13;
-			buffer.Write(ref f7);
+			buffer.Write(f7);
 
 			f8 = bone.BindPose.m20;
-			buffer.Write(ref f8);
+			buffer.Write(f8);
 			f9 = bone.BindPose.m21;
-			buffer.Write(ref f9);
+			buffer.Write(f9);
 			f10 = bone.BindPose.m22;
-			buffer.Write(ref f10);
+			buffer.Write(f10);
 			f11 = bone.BindPose.m23;
-			buffer.Write(ref f11);
+			buffer.Write(f11);
 
 			f12 = bone.BindPose.m30;
-			buffer.Write(ref f12);
+			buffer.Write(f12);
 			f13 = bone.BindPose.m31;
-			buffer.Write(ref f13);
+			buffer.Write(f13);
 			f14 = bone.BindPose.m32;
-			buffer.Write(ref f14);
+			buffer.Write(f14);
 			f15 = bone.BindPose.m33;
-			buffer.Write(ref f15);
+			buffer.Write(f15);
 		}
 
 		float cx, cy, cz;
 		cx = bounds.Center.x;
 		cy = bounds.Center.y;
 		cz = bounds.Center.z;
-		buffer.Write(ref cx);
-		buffer.Write(ref cy);
-		buffer.Write(ref cz);
+		buffer.Write(cx);
+		buffer.Write(cy);
+		buffer.Write(cz);
 
 		float sx, sy, sz;
 		sx = bounds.Size.x;
 		sy = bounds.Size.y;
 		sz = bounds.Size.z;
-		buffer.Write(ref sx);
-		buffer.Write(ref sy);
-		buffer.Write(ref sz);
+		buffer.Write(sx);
+		buffer.Write(sy);
+		buffer.Write(sz);
 
 		int blendShapeFrameCount = blendShapeFrames.Count;
-		buffer.Write(ref blendShapeFrameCount);
+		buffer.Write(blendShapeFrameCount);
 		foreach (var blendShapeFrame in blendShapeFrames)
 		{
 			string name = blendShapeFrame.BlendShape.Name ?? "NULL";
 			if (name.Length > Thundagun.MAX_STRING_LENGTH)
 				name = name.Substring(0, Math.Min(name.Length, Thundagun.MAX_STRING_LENGTH));
-			buffer.Write(Encoding.UTF8.GetBytes(name));
+			buffer.WriteString2(name);
 
 			float weight = blendShapeFrame.Weight;
-			buffer.Write(ref weight);
+			buffer.Write(weight);
 
 			if (blendShapeFrame.RawPositions != null)
 			{
 				int positionsCount = blendShapeFrame.RawPositions.Length;
-				buffer.Write(ref positionsCount);
+				buffer.Write(positionsCount);
 				foreach (var pos in blendShapeFrame.RawPositions)
 				{
 					float px = pos.x;
 					float py = pos.y;
 					float pz = pos.z;
-					buffer.Write(ref px);
-					buffer.Write(ref py);
-					buffer.Write(ref pz);
+					buffer.Write(px);
+					buffer.Write(py);
+					buffer.Write(pz);
 				}
 			}
 			else
 			{
 				int positionsCount = 0;
-				buffer.Write(ref positionsCount);
+				buffer.Write(positionsCount);
 			}
 
 			if (blendShapeFrame.RawNormals != null)
 			{
 				int normalsCount = blendShapeFrame.RawNormals.Length;
-				buffer.Write(ref normalsCount);
+				buffer.Write(normalsCount);
 				foreach (var norm in blendShapeFrame.RawNormals)
 				{
 					float nx = norm.x;
 					float ny = norm.y;
 					float nz = norm.z;
-					buffer.Write(ref nx);
-					buffer.Write(ref ny);
-					buffer.Write(ref nz);
+					buffer.Write(nx);
+					buffer.Write(ny);
+					buffer.Write(nz);
 				}
 			}
 			else
 			{
 				int normalsCount = 0;
-				buffer.Write(ref normalsCount);
+				buffer.Write(normalsCount);
 			}
 
 			if (blendShapeFrame.RawTangents != null)
 			{
 				int tangentsCount = blendShapeFrame.RawTangents.Length;
-				buffer.Write(ref tangentsCount);
+				buffer.Write(tangentsCount);
 				foreach (var tang in blendShapeFrame.RawTangents)
 				{
 					float tx = tang.x;
 					float ty = tang.y;
 					float tz = tang.z;
-					buffer.Write(ref tx);
-					buffer.Write(ref ty);
-					buffer.Write(ref tz);
+					buffer.Write(tx);
+					buffer.Write(ty);
+					buffer.Write(tz);
 				}
 			}
 			else
 			{
 				int tangentsCount = 0;
-				buffer.Write(ref tangentsCount);
+				buffer.Write(tangentsCount);
 			}
 		}
 
 		int uv2dcount = uv2d.Length;
-		buffer.Write(ref uv2dcount);
+		buffer.Write(uv2dcount);
 		int i = 0;
 		foreach (var arr in uv2d)
 		{
 			if (arr != null)
 			{
-				buffer.Write(ref i);
+				buffer.Write(i);
 				foreach (var num in arr)
 				{
 					var x = num.x;
-					buffer.Write(ref x);
+					buffer.Write(x);
 					var y = num.y;
-					buffer.Write(ref y);
+					buffer.Write(y);
 				}
 			}
 			else
 			{
 				int dummy = -999;
-				buffer.Write(ref dummy);
+				buffer.Write(dummy);
 			}
 			i++;
 		}
 
 		int uv3dcount = uv3d.Length;
-		buffer.Write(ref uv3dcount);
+		buffer.Write(uv3dcount);
 		int j = 0;
 		foreach (var arr in uv3d)
 		{
 			if (arr != null)
 			{
-				buffer.Write(ref j);
+				buffer.Write(j);
 				foreach (var num in arr)
 				{
 					var x = num.x;
-					buffer.Write(ref x);
+					buffer.Write(x);
 					var y = num.y;
-					buffer.Write(ref y);
+					buffer.Write(y);
 					var z = num.z;
-					buffer.Write(ref z);
+					buffer.Write(z);
 				}
 			}
 			else
 			{
 				int dummy = -999;
-				buffer.Write(ref dummy);
+				buffer.Write(dummy);
 			}
 			j++;
 		}
 
 		int uv4dcount = uv4d.Length;
-		buffer.Write(ref uv4dcount);
+		buffer.Write(uv4dcount);
 		int k = 0;
 		foreach (var arr in uv4d)
 		{
 			if (arr != null)
 			{
-				buffer.Write(ref k);
+				buffer.Write(k);
 				foreach (var num in arr)
 				{
 					var x = num.x;
-					buffer.Write(ref x);
+					buffer.Write(x);
 					var y = num.y;
-					buffer.Write(ref y);
+					buffer.Write(y);
 					var z = num.z;
-					buffer.Write(ref z);
+					buffer.Write(z);
 					var w = num.w;
-					buffer.Write(ref w);
+					buffer.Write(w);
 				}
 			}
 			else
 			{
 				int dummy = -999;
-				buffer.Write(ref dummy);
+				buffer.Write(dummy);
 			}
 			k++;
 		}

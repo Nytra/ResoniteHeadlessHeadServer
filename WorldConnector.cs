@@ -39,13 +39,9 @@ public class InitializeWorldConnector : UpdatePacket<WorldConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		buffer.Write(ref WorldId);
-	}
-	public override void Deserialize(CircularBuffer buffer)
-	{
-		buffer.Read(out WorldId);
+		buffer.Write(WorldId);
 	}
 	public override string ToString()
 	{
@@ -66,15 +62,10 @@ public class ChangeFocusWorldConnector : UpdatePacket<WorldConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		buffer.Write(ref Focus);
-		buffer.Write(ref WorldId);
-	}
-	public override void Deserialize(CircularBuffer buffer)
-	{
-		buffer.Read(out Focus);
-		buffer.Read(out WorldId);
+		buffer.Write(Focus);
+		buffer.Write(WorldId);
 	}
 	public override string ToString()
 	{
@@ -92,13 +83,9 @@ public class DestroyWorldConnector : UpdatePacket<WorldConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		buffer.Write(ref WorldId);
-	}
-	public override void Deserialize(CircularBuffer buffer)
-	{
-		buffer.Read(out WorldId);
+		buffer.Write(WorldId);
 	}
 	public override string ToString()
 	{

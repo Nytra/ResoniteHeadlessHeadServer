@@ -79,109 +79,16 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 
 	public override int Id => (int)PacketTypes.ApplyChangesMaterial;
 
-	public override void Deserialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		buffer.ReadString(out shaderFilePath);
+		buffer.WriteString2(shaderFilePath);
 
-		buffer.ReadString(out shaderLocalPath);
+		buffer.WriteString2(shaderLocalPath);
 
-		buffer.Read(out ownerId);
-
-		actionQueue = new();
-		int actionCount;
-		buffer.Read(out actionCount);
-		for (int j = 0; j < actionCount; j++)
-		{
-			MaterialConnectorBase.MaterialAction action = new();
-			// int, int, float4, object
-
-			int type;
-			int propertyIndex;
-			float4 float4Value;
-			object obj = null; // string, string, List<float>, List<float4>, itexture - TYPES: flag, tag, floatarray, float4array, texture
-
-			buffer.Read(out type);
-			buffer.Read(out propertyIndex);
-
-			// read float4
-
-			float f0, f1, f2, f3;
-			buffer.Read(out f0);
-			buffer.Read(out f1);
-			buffer.Read(out f2);
-			buffer.Read(out f3);
-			float4Value = new float4(f0, f1, f2, f3);
-
-			if (type == (int)MaterialConnectorBase.ActionType.Flag || type == (int)MaterialConnectorBase.ActionType.Tag)
-			{
-				string flagOrTag;
-				buffer.ReadString(out flagOrTag);
-				obj = flagOrTag;
-			}
-			else if (type == (int)MaterialConnectorBase.ActionType.FloatArray)
-			{
-				List<float> arr = new();
-				int arrCount;
-				buffer.Read(out arrCount);
-
-				for (int i = 0; i < arrCount; i++)
-				{
-					float flt;
-					buffer.Read(out flt); // add to list
-					arr.Add(flt);
-				}
-				obj = arr;
-			}
-			else if (type == (int)MaterialConnectorBase.ActionType.Float4Array)
-			{
-				List<float4> arr = new();
-				int arrCount;
-				buffer.Read(out arrCount);
-
-				for (int i = 0; i < arrCount; i++)
-				{
-					float ff0, ff1, ff2, ff3;
-					buffer.Read(out ff0);
-					buffer.Read(out ff1);
-					buffer.Read(out ff2);
-					buffer.Read(out ff3);
-					arr.Add(new float4(ff0, ff1, ff2, ff3));
-				}
-				obj = arr;
-			}
-			else if (type == (int)MaterialConnectorBase.ActionType.Matrix)
-			{
-				// never used in frooxengine, don't need to handle
-			}
-			else if (type == (int)MaterialConnectorBase.ActionType.Texture)
-			{
-				// handle textures here later? needs TextureConnector
-				string localPath;
-				buffer.ReadString(out localPath);
-
-				ulong ownerId;
-				buffer.Read(out ownerId);
-
-				obj = new Tuple<string, ulong>(localPath, ownerId);
-			}
-			action.type = (MaterialConnectorBase.ActionType)type;
-			action.propertyIndex = propertyIndex;
-			action.float4Value = float4Value;
-			action.obj = obj;
-			actionQueue.Enqueue(action);
-		}
-	}
-
-	public override void Serialize(CircularBuffer buffer)
-	{
-		buffer.WriteString(shaderFilePath);
-
-		buffer.WriteString(shaderLocalPath);
-
-		buffer.Write(ref ownerId);
+		buffer.Write(ownerId);
 
 		int actionCount = Owner.actionQueue.Count;
-		buffer.Write(ref actionCount);
+		buffer.Write(actionCount);
 		while (Owner.actionQueue != null && Owner.actionQueue.Count > 0)
 		{
 			MaterialConnectorBase.MaterialAction action = Owner.actionQueue.Dequeue();
@@ -192,8 +99,8 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 			float4 float4Value = action.float4Value;
 			object obj = action.obj; // string, string, List<float>, List<float4>, itexture - TYPES: flag, tag, floatarray, float4array, texture
 
-			buffer.Write(ref type);
-			buffer.Write(ref propertyIndex);
+			buffer.Write(type);
+			buffer.Write(propertyIndex);
 			
 			// write float4
 
@@ -202,10 +109,10 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 			f1 = float4Value.y;
 			f2 = float4Value.z;
 			f3 = float4Value.w;
-			buffer.Write(ref f0);
-			buffer.Write(ref f1);
-			buffer.Write(ref f2);
-			buffer.Write(ref f3);
+			buffer.Write(f0);
+			buffer.Write(f1);
+			buffer.Write(f2);
+			buffer.Write(f3);
 
 			if (type == (int)MaterialConnectorBase.ActionType.Flag || type == (int)MaterialConnectorBase.ActionType.Tag)
 			{
@@ -214,30 +121,30 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 					string newStr = (string)obj;
 					if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
 						newStr = newStr.Substring(0, Math.Min(newStr.Length, Thundagun.MAX_STRING_LENGTH));
-					buffer.WriteString(newStr);
+					buffer.WriteString2(newStr);
 				}
 				else
 				{
-					buffer.WriteString("NULL");
+					buffer.WriteString2("NULL");
 				}
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.FloatArray)
 			{
 				var arr = (List<float>)obj;
 				int arrCount = arr.Count;
-				buffer.Write(ref arrCount);
+				buffer.Write(arrCount);
 
 				foreach (var flt in arr.ToArray())
 				{
 					float flt2 = flt;
-					buffer.Write(ref flt2);
+					buffer.Write(flt2);
 				}
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Float4Array)
 			{
 				var arr = (List<float4>)obj;
 				int arrCount = arr.Count;
-				buffer.Write(ref arrCount);
+				buffer.Write(arrCount);
 
 				foreach (var flt in arr.ToArray())
 				{
@@ -246,10 +153,10 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 					ff1 = flt.y;
 					ff2 = flt.z;
 					ff3 = flt.w;
-					buffer.Write(ref ff0);
-					buffer.Write(ref ff1);
-					buffer.Write(ref ff2);
-					buffer.Write(ref ff3);
+					buffer.Write(ff0);
+					buffer.Write(ff1);
+					buffer.Write(ff2);
+					buffer.Write(ff3);
 				}
 			}
 			else if (type == (int)MaterialConnectorBase.ActionType.Matrix)
@@ -263,10 +170,10 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 				var texConn = tex?.Connector as TextureConnector;
 
 				var localPath = texConn?.LocalPath ?? "NULL";
-				buffer.WriteString(localPath);
+				buffer.WriteString2(localPath);
 
 				var ownerId = texConn?.ownerId ?? default;
-				buffer.Write(ref ownerId);
+				buffer.Write(ownerId);
 			}
 		}
 	}

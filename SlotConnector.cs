@@ -106,110 +106,60 @@ public class ApplyChangesSlotConnector : UpdatePacket<SlotConnector>
 			owner.ForceShowDebugVisuals;
 	}
 
-	public override void Serialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		buffer.Write(ref Active);
-		buffer.Write(ref ActiveChanged);
+		buffer.Write(Active);
+		buffer.Write(ActiveChanged);
 
 		float px = Position.x;
 		float py = Position.y;
 		float pz = Position.z;
-		buffer.Write(ref px);
-		buffer.Write(ref py);
-		buffer.Write(ref pz);
-		buffer.Write(ref PositionChanged);
+		buffer.Write(px);
+		buffer.Write(py);
+		buffer.Write(pz);
+		buffer.Write(PositionChanged);
 
 		float rx = Rotation.x;
 		float ry = Rotation.y;
 		float rz = Rotation.z;
 		float rw = Rotation.w;
-		buffer.Write(ref rx);
-		buffer.Write(ref ry);
-		buffer.Write(ref rz);
-		buffer.Write(ref rw);
-		buffer.Write(ref RotationChanged);
+		buffer.Write(rx);
+		buffer.Write(ry);
+		buffer.Write(rz);
+		buffer.Write(rw);
+		buffer.Write(RotationChanged);
 
 		float sx = Scale.x;
 		float sy = Scale.y;
 		float sz = Scale.z;
-		buffer.Write(ref sx);
-		buffer.Write(ref sy);
-		buffer.Write(ref sz);
-		buffer.Write(ref ScaleChanged);
+		buffer.Write(sx);
+		buffer.Write(sy);
+		buffer.Write(sz);
+		buffer.Write(ScaleChanged);
 
-		buffer.Write(ref RefId);
+		buffer.Write(RefId);
 
-		buffer.Write(ref ParentRefId);
+		buffer.Write(ParentRefId);
 
-		buffer.Write(ref HasParent);
+		buffer.Write(HasParent);
 
-		buffer.Write(ref IsRootSlot);
+		buffer.Write(IsRootSlot);
 
-		buffer.Write(ref Reparent);
+		buffer.Write(Reparent);
 
-		buffer.Write(Encoding.UTF8.GetBytes(SlotName));
+		buffer.WriteString2(SlotName);
 
-		buffer.Write(ref WorldId);
+		buffer.Write(WorldId);
 
-		buffer.Write(ref IsUserRootSlot);
+		buffer.Write(IsUserRootSlot);
 
-		buffer.Write(ref HasActiveUser);
+		buffer.Write(HasActiveUser);
 
-		buffer.Write(ref ShowDebugVisuals);
+		buffer.Write(ShowDebugVisuals);
 
-		buffer.Write(ref IsLocalElement);
+		buffer.Write(IsLocalElement);
 	}
-	public override void Deserialize(CircularBuffer buffer)
-	{
-		buffer.Read(out Active);
-		buffer.Read(out ActiveChanged);
 
-		float px, py, pz;
-		buffer.Read(out px);
-		buffer.Read(out py);
-		buffer.Read(out pz);
-		Position = new float3(px, py, pz);
-		buffer.Read(out PositionChanged);
-
-		float rx, ry, rz, rw;
-		buffer.Read(out rx);
-		buffer.Read(out ry);
-		buffer.Read(out rz);
-		buffer.Read(out rw);
-		Rotation = new floatQ(rx, ry, rz, rw);
-		buffer.Read(out RotationChanged);
-
-		float sx, sy, sz;
-		buffer.Read(out sx);
-		buffer.Read(out sy);
-		buffer.Read(out sz);
-		Scale = new float3(sx, sy, sz);
-		buffer.Read(out ScaleChanged);
-
-		buffer.Read(out RefId);
-
-		buffer.Read(out ParentRefId);
-
-		buffer.Read(out HasParent);
-
-		buffer.Read(out IsRootSlot);
-
-		buffer.Read(out Reparent);
-
-		var bytes = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes);
-		SlotName = Encoding.UTF8.GetString(bytes);
-
-		buffer.Read(out WorldId);
-
-		buffer.Read(out IsUserRootSlot);
-
-		buffer.Read(out HasActiveUser);
-
-		buffer.Read(out ShowDebugVisuals);
-
-		buffer.Read(out IsLocalElement);
-	}
 	public override string ToString()
 	{
 		return $"ApplyChangesSlotConnector: {Active} {ActiveChanged} {Position} {PositionChanged} {Rotation} {RotationChanged} {Scale} {ScaleChanged} {RefId} {ParentRefId} {HasParent} {IsRootSlot} {Reparent} {SlotName} {WorldId} {IsUserRootSlot} {HasActiveUser} {ShowDebugVisuals}";
@@ -231,18 +181,13 @@ public class DestroySlotConnector : UpdatePacket<SlotConnector>
 		WorldId = owner.WorldId;
 	}
 
-	public override void Serialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		buffer.Write(ref RefID);
-		buffer.Write(ref DestroyingWorld);
-		buffer.Write(ref WorldId);
+		buffer.Write(RefID);
+		buffer.Write(DestroyingWorld);
+		buffer.Write(WorldId);
 	}
-	public override void Deserialize(CircularBuffer buffer)
-	{
-		buffer.Read(out RefID);
-		buffer.Read(out DestroyingWorld);
-		buffer.Read(out WorldId);
-	}
+
 	public override string ToString()
 	{
 		return $"DestroySlotConnector: {RefID} {DestroyingWorld} {WorldId}";

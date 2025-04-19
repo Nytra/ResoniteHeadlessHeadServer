@@ -156,75 +156,15 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 	public override int Id => (int)PacketTypes.ApplyChangesMeshRenderer;
 
-	public override void Deserialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		buffer.Read(out rendId);
+		buffer.Write(rendId);
 
-		buffer.Read(out slotRefId);
-		buffer.Read(out worldId);
-		buffer.Read(out isSkinned);
+		buffer.Write(slotRefId);
+		buffer.Write(worldId);
+		buffer.Write(isSkinned);
 
-		buffer.Read(out enabled);
-
-		//var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
-		//buffer.Read(bytes2);
-		//shaderFilePath = Encoding.UTF8.GetString(bytes2);
-
-		//var bytes4 = new byte[Thundagun.MAX_STRING_LENGTH];
-		//buffer.Read(bytes4);
-		//shaderLocalPath = Encoding.UTF8.GetString(bytes4);
-
-		//buffer.Read(out matCompId);
-
-		int matCount;
-		buffer.Read(out matCount);
-		for (int i = 0; i < matCount; i++)
-		{
-			string shaderFilePath;
-			buffer.ReadString(out shaderFilePath);
-
-			string shaderLocalPath;
-			buffer.ReadString(out shaderLocalPath);
-
-			ulong matCompId;
-			buffer.Read(out matCompId);
-		}
-
-		var bytes3 = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes3);
-		meshPath = Encoding.UTF8.GetString(bytes3);
-
-		buffer.Read(out meshCompId);
-
-		if (isSkinned)
-		{
-			int boneRefIdsCount;
-			buffer.Read(out boneRefIdsCount);
-			for (int i = 0; i < boneRefIdsCount; i++)
-			{
-				ulong refId;
-				buffer.Read(out refId);
-			}
-
-			int blendShapeWeightCount;
-			buffer.Read(out blendShapeWeightCount);
-			for (int i = 0; i < blendShapeWeightCount; i++)
-			{
-				float weight;
-				buffer.Read(out weight);
-			}
-		}
-	}
-
-	public override void Serialize(CircularBuffer buffer)
-	{
-		buffer.Write(ref rendId);
-
-		buffer.Write(ref slotRefId);
-		buffer.Write(ref worldId);
-		buffer.Write(ref isSkinned);
-
-		buffer.Write(ref enabled);
+		buffer.Write(enabled);
 
 		//buffer.Write(Encoding.UTF8.GetBytes(shaderFilePath));
 
@@ -233,39 +173,39 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		//buffer.Write(ref matCompId);
 
 		int matCount = matCompIds.Count;
-		buffer.Write(ref matCount);
+		buffer.Write(matCount);
 		for (int i = 0; i < matCount; i++)
 		{
 			string shaderFilePath = shaderFilePaths[i];
-			buffer.WriteString(shaderFilePath);
+			buffer.WriteString2(shaderFilePath);
 
 			string shaderLocalPath = shaderLocalPaths[i];
-			buffer.WriteString(shaderLocalPath);
+			buffer.WriteString2(shaderLocalPath);
 
 			ulong matCompId = matCompIds[i];
-			buffer.Write(ref matCompId);
+			buffer.Write(matCompId);
 		}
 
-		buffer.Write(Encoding.UTF8.GetBytes(meshPath));
+		buffer.WriteString2(meshPath);
 
-		buffer.Write(ref meshCompId);
+		buffer.Write(meshCompId);
 
 		if (isSkinned)
 		{
 			int boneRefIdsCount = boneRefIds.Count;
-			buffer.Write(ref boneRefIdsCount);
+			buffer.Write(boneRefIdsCount);
 			foreach (var boneRefId in boneRefIds)
 			{
 				ulong refId = boneRefId;
-				buffer.Write(ref refId);
+				buffer.Write(refId);
 			}
 
 			int blendShapeWeightCount = blendShapeWeights.Count;
-			buffer.Write(ref blendShapeWeightCount);
+			buffer.Write(blendShapeWeightCount);
 			foreach (var blendShapeWeight in blendShapeWeights)
 			{
 				float weight = blendShapeWeight;
-				buffer.Write(ref weight);
+				buffer.Write(weight);
 			}
 		}
 	}
@@ -279,11 +219,7 @@ public class DestroyMeshRendererConnector<T> : UpdatePacket<MeshRendererConnecto
 
 	public override int Id => (int)PacketTypes.DestroyMeshRenderer;
 
-	public override void Deserialize(CircularBuffer buffer)
-	{
-	}
-
-	public override void Serialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
 	}
 }

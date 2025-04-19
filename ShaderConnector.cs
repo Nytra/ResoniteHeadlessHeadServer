@@ -58,21 +58,10 @@ public class LoadFromFileShaderConnector : UpdatePacket<ShaderConnector>
 
 	public override int Id => (int)PacketTypes.LoadFromFileShader;
 
-	public override void Deserialize(CircularBuffer buffer)
+	public override void Serialize(BinaryWriter buffer)
 	{
-		var bytes = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes);
-		File = Encoding.UTF8.GetString(bytes);
+		buffer.WriteString2(File);
 
-		var bytes2 = new byte[Thundagun.MAX_STRING_LENGTH];
-		buffer.Read(bytes2);
-		LocalPath = Encoding.UTF8.GetString(bytes2);
-	}
-
-	public override void Serialize(CircularBuffer buffer)
-	{
-		buffer.Write(Encoding.UTF8.GetBytes(File));
-
-		buffer.Write(Encoding.UTF8.GetBytes(LocalPath));
+		buffer.WriteString2(LocalPath);
 	}
 }

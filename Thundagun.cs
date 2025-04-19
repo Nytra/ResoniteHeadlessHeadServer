@@ -71,9 +71,9 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 32768, 256); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 50, 1048576); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong))
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
-		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 4096, 512);
+		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 50, 1048576);
 		//frameSyncBuffer = new CircularBuffer($"FrameSyncBuffer{mainBufferId}", 2, 4);
 
 		Console.WriteLine("Server: Buffers created.");
@@ -142,7 +142,7 @@ public class Thundagun
 	//		FrameSyncLoop();
 	//	});
 	//}
-	private static void ProcessPackets()
+	private static async void ProcessPackets()
 	{
 		while (true)
 		{
@@ -160,10 +160,19 @@ public class Thundagun
 					{
 						var packetStruct = copy.Dequeue();
 						var num = packetStruct.packet.Id;
+						MemoryStream ms = new();
+						BinaryWriter bw = new(ms);
+						buffer.Write(ref num);
+						buffer.Write(ref num);
 						buffer.Write(ref num);
 						try
 						{
-							packetStruct.packet.Serialize(buffer);
+							//ms.Seek(0, SeekOrigin.Begin);
+							packetStruct.packet.Serialize(bw);
+							byte[] arr = ms.ToArray();
+							int len = arr.Length;
+							buffer.Write(ref len);
+							buffer.Write(arr);
 						}
 						catch (Exception e)
 						{
@@ -179,6 +188,7 @@ public class Thundagun
 							UniLog.Error($"Exception running high priority packet queue callback: {e}");
 							throw;
 						}
+						await Task.Delay(10);
 					}
 				}
 				//aaa
@@ -204,10 +214,19 @@ public class Thundagun
 							{
 								var highPrio = highPrioCopy.Dequeue();
 								var num2 = highPrio.packet.Id;
+								MemoryStream ms2 = new();
+								BinaryWriter bw2 = new(ms2);
+								buffer.Write(ref num2);
+								buffer.Write(ref num2);
 								buffer.Write(ref num2);
 								try
 								{
-									highPrio.packet.Serialize(buffer);
+									//ms2.Seek(0, SeekOrigin.Begin);
+									highPrio.packet.Serialize(bw2);
+									byte[] arr = ms2.ToArray();
+									int len2 = arr.Length;
+									buffer.Write(ref len2);
+									buffer.Write(arr);
 								}
 								catch (Exception e)
 								{
@@ -223,14 +242,24 @@ public class Thundagun
 									UniLog.Error($"Exception running high priority packet queue callback: {e}");
 									throw;
 								}
+								await Task.Delay(10);
 							}
 						}
 						var packetStruct = copy.Dequeue();
 						var num = packetStruct.packet.Id;
+						MemoryStream ms = new();
+						BinaryWriter bw = new(ms);
+						buffer.Write(ref num);
+						buffer.Write(ref num);
 						buffer.Write(ref num);
 						try
 						{
-							packetStruct.packet.Serialize(buffer);
+							packetStruct.packet.Serialize(bw);
+							//ms.Seek(0, SeekOrigin.Begin);
+							byte[] arr = ms.ToArray();
+							int len = arr.Length;
+							buffer.Write(ref len);
+							buffer.Write(arr);
 						}
 						catch (Exception e)
 						{
@@ -246,6 +275,7 @@ public class Thundagun
 							UniLog.Error($"Exception running packet queue callback: {e}");
 							throw;
 						}
+						await Task.Delay(10);
 					}
 				}
 			}
@@ -267,15 +297,33 @@ public class Thundagun
 			{
 				returnBuffer.Read(out num);
 
+				int num2;
+				returnBuffer.Read(out num2);
+
+				if (num != num2) continue;
+
+				int num3;
+				returnBuffer.Read(out num3);
+
+				if (num3 != num2) continue;
+
+				int len;
+				returnBuffer.Read(out len);
+
+				byte[] arr = new byte[len];
+				returnBuffer.Read(arr);
+
+				MemoryStream ms = new(arr, 0, len);
+				BinaryReader br = new(ms);
+
 				if (num != 0)
 				{
 					if (num == (int)PacketTypes.InitializeMaterialProperties)
 					{
-
 						var matConn = MaterialConnector.initializingProperties.Dequeue();
 
 						InitializeMaterialPropertiesPacket deserializedObject = new(matConn);
-						deserializedObject.Deserialize(returnBuffer);
+						deserializedObject.Deserialize(br);
 
 						UniLog.Log($"InitializeMaterialProperties ReturnPacket Data: {string.Join(',', deserializedObject.PropertyIds)}");
 
@@ -313,15 +361,18 @@ public abstract class UpdatePacket<T> : IUpdatePacket
 	{
 		Owner = owner;
 	}
-	public abstract void Serialize(CircularBuffer buffer);
-	public abstract void Deserialize(CircularBuffer buffer);
+	public abstract void Serialize(BinaryWriter buffer);
+	public virtual void Deserialize(BinaryReader buffer)
+	{
+		// owo
+	}
 }
 
 public interface IUpdatePacket
 {
 	public int Id { get; }
-	public void Serialize(CircularBuffer buffer);
-	public void Deserialize(CircularBuffer buffer);
+	public void Serialize(BinaryWriter buffer);
+	public void Deserialize(BinaryReader buffer);
 }
 
 public enum PacketTypes

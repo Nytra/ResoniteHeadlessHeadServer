@@ -162,9 +162,7 @@ public class Thundagun
 						var num = packetStruct.packet.Id;
 						MemoryStream ms = new();
 						BinaryWriter bw = new(ms);
-						buffer.Write(ref num);
-						buffer.Write(ref num);
-						buffer.Write(ref num);
+						bw.Write(num);
 						try
 						{
 							//ms.Seek(0, SeekOrigin.Begin);
@@ -216,9 +214,7 @@ public class Thundagun
 								var num2 = highPrio.packet.Id;
 								MemoryStream ms2 = new();
 								BinaryWriter bw2 = new(ms2);
-								buffer.Write(ref num2);
-								buffer.Write(ref num2);
-								buffer.Write(ref num2);
+								bw2.Write(num2);
 								try
 								{
 									//ms2.Seek(0, SeekOrigin.Begin);
@@ -249,9 +245,7 @@ public class Thundagun
 						var num = packetStruct.packet.Id;
 						MemoryStream ms = new();
 						BinaryWriter bw = new(ms);
-						buffer.Write(ref num);
-						buffer.Write(ref num);
-						buffer.Write(ref num);
+						bw.Write(num);
 						try
 						{
 							packetStruct.packet.Serialize(bw);
@@ -295,17 +289,7 @@ public class Thundagun
 		{
 			try 
 			{
-				returnBuffer.Read(out num);
-
-				int num2;
-				returnBuffer.Read(out num2);
-
-				if (num != num2) continue;
-
-				int num3;
-				returnBuffer.Read(out num3);
-
-				if (num3 != num2) continue;
+				//returnBuffer.Read(out num);
 
 				int len;
 				returnBuffer.Read(out len);
@@ -315,6 +299,8 @@ public class Thundagun
 
 				MemoryStream ms = new(arr, 0, len);
 				BinaryReader br = new(ms);
+
+				num = br.ReadInt32();
 
 				if (num != 0)
 				{

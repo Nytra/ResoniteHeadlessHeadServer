@@ -173,7 +173,10 @@ public class TextureConnector : ITexture2DConnector
 
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 
-		Thundagun.QueuePacket(new SetPropertiesTextureConnector(this));
+		if (Asset.HighPriorityIntegration)
+			Thundagun.QueueHighPriorityPacket(new SetPropertiesTextureConnector(this));
+		else
+			Thundagun.QueuePacket(new SetPropertiesTextureConnector(this));
 
 		if (onSet != null)
 			onSet(false);
@@ -206,7 +209,7 @@ public class TextureConnector : ITexture2DConnector
 
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 
-		Thundagun.QueuePacket(new SetFormatTextureConnector(this));
+		Thundagun.QueueHighPriorityPacket(new SetFormatTextureConnector(this));
 
 		callOnDone();
 
@@ -244,7 +247,10 @@ public class TextureConnector : ITexture2DConnector
 
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 
-		Thundagun.QueuePacket(new SetDataTextureConnector(this));
+		if (Asset.HighPriorityIntegration)
+			Thundagun.QueueHighPriorityPacket(new SetDataTextureConnector(this));
+		else
+			Thundagun.QueuePacket(new SetDataTextureConnector(this));
 
 		onSet(false);
 	}
@@ -491,11 +497,14 @@ public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 		int arrLen;
 		buffer.Read(out arrLen);
 
-		for (int i = 0; i < arrLen; i++)
-		{
-			byte byt;
-			buffer.Read(out byt);
-		}
+		byte[] buf = new byte[arrLen];
+		buffer.Read(buf, timeout: 5000);
+
+		//for (int i = 0; i < arrLen; i++)
+		//{
+			//byte byt;
+			//buffer.Read(out byt);
+		//}
 	}
 
 	public override void Serialize(CircularBuffer buffer)

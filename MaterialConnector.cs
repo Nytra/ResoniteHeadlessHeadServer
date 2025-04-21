@@ -33,7 +33,11 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		//UniLog.Log($"ApplyChangesMaterial: {ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {ShaderLocalPath} {ShaderFilePath}");
 
 		var thing = new ApplyChangesMaterialConnector(this);
-		Thundagun.QueuePacket(thing);
+
+		if (Asset.HighPriorityIntegration)
+			Thundagun.QueueHighPriorityPacket(thing);
+		else
+			Thundagun.QueuePacket(thing);
 
 		onDone(true);
 		firstRender = false;

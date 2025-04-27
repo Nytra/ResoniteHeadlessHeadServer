@@ -24,4 +24,16 @@ public static class HelperExtensions
 		writer.Write(bytes.Length);
 		writer.Write(bytes);
 	}
+
+	public static string ReadString2(this BinaryReader reader)
+	{
+		//byte[] bytes = Encoding.UTF8.GetBytes(str);
+		//writer.Write(bytes.Length);
+		//writer.Write(bytes);
+
+		int len = reader.ReadInt32();
+		var bytes = new byte[len];
+		reader.Read(bytes);
+		return Encoding.UTF8.GetString(bytes);
+	}
 }

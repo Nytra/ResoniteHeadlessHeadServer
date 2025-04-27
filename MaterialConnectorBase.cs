@@ -162,4 +162,17 @@ public class InitializeMaterialPropertiesPacket : UpdatePacket<MaterialConnector
 			buffer.WriteString2(newStr);
 		}
 	}
+
+	public override void Deserialize(BinaryReader buffer)
+	{
+		int propCount;
+		propCount = buffer.ReadInt32();
+		PropertyIds = new();
+		for (int i = 0; i < propCount; i++)
+		{
+			var id = buffer.ReadInt32();
+			PropertyIds.Add(id);
+
+		}
+	}
 }

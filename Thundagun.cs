@@ -17,6 +17,10 @@ public class Thundagun
 	private static Queue<PacketStruct> highPriorityPackets = new();
 	private static int mainBufferId;
 	public const int MAX_STRING_LENGTH = 256; // UTF8
+
+	public static MemoryStream ms = new();
+	public static BinaryWriter bw = new(ms);
+
 	public struct PacketStruct
 	{
 		public IUpdatePacket packet;
@@ -160,8 +164,9 @@ public class Thundagun
 					{
 						var packetStruct = copy.Dequeue();
 						var num = packetStruct.packet.Id;
-						MemoryStream ms = new();
-						BinaryWriter bw = new(ms);
+						//MemoryStream ms = new();
+						//BinaryWriter bw = new(ms);
+						ms.Position = 0;
 						bw.Write(num);
 						try
 						{
@@ -212,14 +217,15 @@ public class Thundagun
 							{
 								var highPrio = highPrioCopy.Dequeue();
 								var num2 = highPrio.packet.Id;
-								MemoryStream ms2 = new();
-								BinaryWriter bw2 = new(ms2);
-								bw2.Write(num2);
+								//MemoryStream ms2 = new();
+								//BinaryWriter bw2 = new(ms2);
+								ms.Position = 0;
+								bw.Write(num2);
 								try
 								{
 									//ms2.Seek(0, SeekOrigin.Begin);
-									highPrio.packet.Serialize(bw2);
-									byte[] arr = ms2.ToArray();
+									highPrio.packet.Serialize(bw);
+									byte[] arr = ms.ToArray();
 									int len2 = arr.Length;
 									buffer.Write(ref len2);
 									buffer.Write(arr);
@@ -243,8 +249,9 @@ public class Thundagun
 						}
 						var packetStruct = copy.Dequeue();
 						var num = packetStruct.packet.Id;
-						MemoryStream ms = new();
-						BinaryWriter bw = new(ms);
+						//MemoryStream ms = new();
+						//BinaryWriter bw = new(ms);
+						ms.Position = 0;
 						bw.Write(num);
 						try
 						{
@@ -293,6 +300,15 @@ public class Thundagun
 
 				int len;
 				returnBuffer.Read(out len);
+
+				//UniLog.Log($"returnBuffer debug: {len}");
+
+				if (len == 0 || len == 1)
+				{
+					//byte[] arr2 = new byte[len];
+					//returnBuffer.Read(arr2);
+					continue;
+				}
 
 				byte[] arr = new byte[len];
 				returnBuffer.Read(arr);

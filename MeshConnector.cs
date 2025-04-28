@@ -36,11 +36,11 @@ public class MeshConnector : IMeshConnector
 			onUpdated(true);
 			return;
 		}
-		if (elem != null && elem.IsLocalElement) // this skips stuff like UIX which is VERY LAGGY to send over sometimes
-		{
-			onUpdated(true);
-			return;
-		}
+		//if (elem != null && elem.IsLocalElement) // this skips stuff like UIX which is VERY LAGGY to send over sometimes
+		//{
+			//onUpdated(true);
+			//return;
+		//}
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		Bounds = bounds;
 		Hint = uploadHint;
@@ -78,15 +78,25 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 	string localPath;
 	ulong ownerId;
 	BoundingBox bounds;
+	MeshUploadHint uploadHint;
+	//int blendShapeCount;
+	//int boneCount;
+	//bool hasBoneBindings;
+	//int vertCount;
+	//MeshX mesh;
+	//int submeshCount;
 	public ApplyChangesMeshConnector(MeshConnector owner) : base(owner)
 	{
 		localPath = owner.LocalPath;
 		ownerId = owner.ownerId;
-		MeshX mesh = owner.Mesh;
+		var mesh = owner.Mesh;
 		bounds = owner.Bounds;
+		uploadHint = owner.Hint;
 
 		if (mesh != null)
 		{
+			//vertCount = mesh.RawPositions?.Length ?? 0;
+			//submeshCount = mesh.SubmeshCount;
 			if (mesh.RawPositions != null)
 			{
 				//UniLog.Log($"Mesh has {mesh.RawPositions.Length} verts");
@@ -122,6 +132,7 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 						colors.Add(new color(color.r, color.g, color.b, color.a));
 				}
 			}
+
 
 			//var triSms = mesh.Submeshes.Where(sm2 => sm2 is TriangleSubmesh);
 			//foreach (var sm in triSms)
@@ -160,7 +171,7 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				submeshes.Add(indicies);
 			}
 
-
+			//hasBoneBindings = mesh.HasBoneBindings;
 			if (mesh.RawBoneBindings != null)
 			{
 				foreach (var boneBinding in mesh.RawBoneBindings)
@@ -169,6 +180,7 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				}
 			}
 
+			//boneCount = mesh.BoneCount;
 			if (mesh.Bones != null)
 			{
 				foreach (var bone in mesh.Bones)
@@ -177,6 +189,7 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				}
 			}
 
+			//blendShapeCount = mesh.BlendShapeCount;
 			if (mesh.BlendShapes != null)
 			{
 				foreach (var blendShape in mesh.BlendShapes)
@@ -248,58 +261,99 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 
 		buffer.Write(ownerId);
 
-		int vertCount = verts.Count;
-		buffer.Write(vertCount);
-		//UniLog.Log($"Writing {vertCount * 3} vertex values to the buffer");
-		foreach (var vert in verts)
+		buffer.Write(uploadHint[MeshUploadHint.Flag.Geometry]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.Positions]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.Normals]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.Tangents]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.Colors]);
+
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV0s]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV1s]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV2s]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV3s]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV4s]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV5s]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV6s]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.UV7s]);
+
+		buffer.Write(uploadHint[MeshUploadHint.Flag.BindPoses]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.BoneWeights]);
+
+		buffer.Write(uploadHint[MeshUploadHint.Flag.Dynamic]);
+		buffer.Write(uploadHint[MeshUploadHint.Flag.Readable]);
+
+		//int vertCount = verts.Count;
+		buffer.Write(verts.Count);
+		//buffer.Write(submeshCount);
+
+		//buffer.Write(blendShapeCount);
+		//buffer.Write(boneCount);
+		//buffer.Write(hasBoneBindings);
+
+		if (uploadHint[MeshUploadHint.Flag.Positions])
 		{
-			float x = vert.x;
-			buffer.Write(x);
-			float y = vert.y;
-			buffer.Write(y);
-			float z = vert.z;
-			buffer.Write(z);
+			//UniLog.Log($"Writing {vertCount * 3} vertex values to the buffer");
+			//buffer.Write(verts.Count);
+			foreach (var vert in verts)
+			{
+				float x = vert.x;
+				buffer.Write(x);
+				float y = vert.y;
+				buffer.Write(y);
+				float z = vert.z;
+				buffer.Write(z);
+			}
 		}
 
-		int normalCount = normals.Count;
-		buffer.Write(normalCount);
-		foreach (var normal in normals)
+		if (uploadHint[MeshUploadHint.Flag.Normals])
 		{
-			float x = normal.x;
-			buffer.Write(x);
-			float y = normal.y;
-			buffer.Write(y);
-			float z = normal.z;
-			buffer.Write(z);
+			int normalCount = normals.Count;
+			buffer.Write(normalCount);
+			foreach (var normal in normals)
+			{
+				float x = normal.x;
+				buffer.Write(x);
+				float y = normal.y;
+				buffer.Write(y);
+				float z = normal.z;
+				buffer.Write(z);
+			}
 		}
-
-		int tangentCount = tangents.Count;
-		buffer.Write(tangentCount);
-		foreach (var tangent in tangents)
+		
+		if (uploadHint[MeshUploadHint.Flag.Tangents])
 		{
-			float x = tangent.x;
-			buffer.Write(x);
-			float y = tangent.y;
-			buffer.Write(y);
-			float z = tangent.z;
-			buffer.Write(z);
-			float w = tangent.w;
-			buffer.Write(w);
+			int tangentCount = tangents.Count;
+			buffer.Write(tangentCount);
+			foreach (var tangent in tangents)
+			{
+				float x = tangent.x;
+				buffer.Write(x);
+				float y = tangent.y;
+				buffer.Write(y);
+				float z = tangent.z;
+				buffer.Write(z);
+				float w = tangent.w;
+				buffer.Write(w);
+			}
 		}
-
-		int colorCount = colors.Count;
-		buffer.Write(colorCount);
-		foreach (var color in colors)
+		
+		if (uploadHint[MeshUploadHint.Flag.Colors])
 		{
-			float r = color.r;
-			buffer.Write(r);
-			float g = color.g;
-			buffer.Write(g);
-			float b = color.b;
-			buffer.Write(b);
-			float a = color.a;
-			buffer.Write(a);
+			int colorCount = colors.Count;
+			buffer.Write(colorCount);
+			foreach (var color in colors)
+			{
+				float r = color.r;
+				buffer.Write(r);
+				float g = color.g;
+				buffer.Write(g);
+				float b = color.b;
+				buffer.Write(b);
+				float a = color.a;
+				buffer.Write(a);
+			}
 		}
+		
 
 		//int triangleIndexCount = triangleIndices.Count;
 		//buffer.Write(ref triangleIndexCount);
@@ -309,90 +363,99 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			//buffer.Write(ref idx2);
 		//}
 
-		int submeshCount = submeshes.Count;
-		buffer.Write(submeshCount);
-		foreach (var submesh in submeshes)
+		if (uploadHint[MeshUploadHint.Flag.Geometry])
 		{
-			int topology = submesh.topology;
-			buffer.Write(topology);
-
-			int indexCount = submesh.indicies?.Length ?? 0;
-			buffer.Write(indexCount);
-
-			if (submesh.indicies != null)
+			int submeshCount = submeshes.Count;	
+			buffer.Write(submeshCount);
+			foreach (var submesh in submeshes)
 			{
-				foreach (var ind in submesh.indicies)
+				int topology = submesh.topology;
+				buffer.Write(topology);
+
+				int indexCount = submesh.indicies?.Length ?? 0;
+				buffer.Write(indexCount);
+
+				if (submesh.indicies != null)
 				{
-					int ind2 = ind;
-					buffer.Write(ind2);
+					foreach (var ind in submesh.indicies)
+					{
+						int ind2 = ind;
+						buffer.Write(ind2);
+					}
 				}
 			}
 		}
 
-		int boneBindingCount = boneBindings.Count;
-		buffer.Write(boneBindingCount);
-		foreach (var boneBinding in boneBindings)
+		if (uploadHint[MeshUploadHint.Flag.BoneWeights])
 		{
-			int i0 = boneBinding.boneIndex0;
-			buffer.Write(i0);
-			int i1 = boneBinding.boneIndex1;
-			buffer.Write(i1);
-			int i2 = boneBinding.boneIndex2;
-			buffer.Write(i2);
-			int i3 = boneBinding.boneIndex3;
-			buffer.Write(i3);
+			int boneBindingCount = boneBindings.Count;
+			buffer.Write(boneBindingCount);
+			foreach (var boneBinding in boneBindings)
+			{
+				int i0 = boneBinding.boneIndex0;
+				buffer.Write(i0);
+				int i1 = boneBinding.boneIndex1;
+				buffer.Write(i1);
+				int i2 = boneBinding.boneIndex2;
+				buffer.Write(i2);
+				int i3 = boneBinding.boneIndex3;
+				buffer.Write(i3);
 
-			float w0 = boneBinding.weight0;
-			buffer.Write(w0);
-			float w1 = boneBinding.weight1;
-			buffer.Write(w1);
-			float w2 = boneBinding.weight2;
-			buffer.Write(w2);
-			float w3 = boneBinding.weight3;
-			buffer.Write(w3);
+				float w0 = boneBinding.weight0;
+				buffer.Write(w0);
+				float w1 = boneBinding.weight1;
+				buffer.Write(w1);
+				float w2 = boneBinding.weight2;
+				buffer.Write(w2);
+				float w3 = boneBinding.weight3;
+				buffer.Write(w3);
+			}
 		}
-
-		int boneCount = bones.Count;
-		buffer.Write(boneCount);
-		foreach (var bone in bones)
+		
+		if (uploadHint[MeshUploadHint.Flag.BindPoses])
 		{
-			float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
+			int boneCount = bones.Count;
+			buffer.Write(boneCount);
+			foreach (var bone in bones)
+			{
+				float f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
 
-			f0 = bone.BindPose.m00;
-			buffer.Write(f0);
-			f1 = bone.BindPose.m01;
-			buffer.Write(f1);
-			f2 = bone.BindPose.m02;
-			buffer.Write(f2);
-			f3 = bone.BindPose.m03;
-			buffer.Write(f3);
+				f0 = bone.BindPose.m00;
+				buffer.Write(f0);
+				f1 = bone.BindPose.m01;
+				buffer.Write(f1);
+				f2 = bone.BindPose.m02;
+				buffer.Write(f2);
+				f3 = bone.BindPose.m03;
+				buffer.Write(f3);
 
-			f4 = bone.BindPose.m10;
-			buffer.Write(f4);
-			f5 = bone.BindPose.m11;
-			buffer.Write(f5);
-			f6 = bone.BindPose.m12;
-			buffer.Write(f6);
-			f7 = bone.BindPose.m13;
-			buffer.Write(f7);
+				f4 = bone.BindPose.m10;
+				buffer.Write(f4);
+				f5 = bone.BindPose.m11;
+				buffer.Write(f5);
+				f6 = bone.BindPose.m12;
+				buffer.Write(f6);
+				f7 = bone.BindPose.m13;
+				buffer.Write(f7);
 
-			f8 = bone.BindPose.m20;
-			buffer.Write(f8);
-			f9 = bone.BindPose.m21;
-			buffer.Write(f9);
-			f10 = bone.BindPose.m22;
-			buffer.Write(f10);
-			f11 = bone.BindPose.m23;
-			buffer.Write(f11);
+				f8 = bone.BindPose.m20;
+				buffer.Write(f8);
+				f9 = bone.BindPose.m21;
+				buffer.Write(f9);
+				f10 = bone.BindPose.m22;
+				buffer.Write(f10);
+				f11 = bone.BindPose.m23;
+				buffer.Write(f11);
 
-			f12 = bone.BindPose.m30;
-			buffer.Write(f12);
-			f13 = bone.BindPose.m31;
-			buffer.Write(f13);
-			f14 = bone.BindPose.m32;
-			buffer.Write(f14);
-			f15 = bone.BindPose.m33;
-			buffer.Write(f15);
+				f12 = bone.BindPose.m30;
+				buffer.Write(f12);
+				f13 = bone.BindPose.m31;
+				buffer.Write(f13);
+				f14 = bone.BindPose.m32;
+				buffer.Write(f14);
+				f15 = bone.BindPose.m33;
+				buffer.Write(f15);
+			}
 		}
 
 		float cx, cy, cz;

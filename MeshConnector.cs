@@ -15,6 +15,7 @@ public class MeshConnector : IMeshConnector
 	public MeshUploadHint Hint;
 	public bool firstRender = true;
 	public ulong ownerId;
+	public bool lastReadable;
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
@@ -49,8 +50,9 @@ public class MeshConnector : IMeshConnector
 
 		Thundagun.QueuePacket(new ApplyChangesMeshConnector(this));
 
-		onUpdated(firstRender);
+		onUpdated(firstRender || !lastReadable);
 		firstRender = false;
+		lastReadable = uploadHint[MeshUploadHint.Flag.Readable];
 	}
 }
 
@@ -207,46 +209,53 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			uv4d = new float4[num][];
 			for (int i = 0; i < num; i++)
 			{
-				switch (mesh.GetUV_Dimension(i))
+				if (uploadHint.GetUVChannel(i))
 				{
-					case 0:
-						uv2d[i] = null;
-						uv3d[i] = null;
-						uv4d[i] = null;
-						break;
-					case 2:
-						uv2d[i] = new float2[verts.Count];
-						uv3d[i] = null;
-						uv4d[i] = null;
-						break;
-					case 3:
-						uv2d[i] = null;
-						uv3d[i] = new float3[verts.Count];
-						uv4d[i] = null;
-						break;
-					case 4:
-						uv2d[i] = null;
-						uv3d[i] = null;
-						uv4d[i] = new float4[verts.Count];
-						break;
+					switch (mesh.GetUV_Dimension(i))
+					{
+						case 0:
+							uv2d[i] = null;
+							uv3d[i] = null;
+							uv4d[i] = null;
+							break;
+						case 2:
+							uv2d[i] = new float2[verts.Count];
+							uv3d[i] = null;
+							uv4d[i] = null;
+							break;
+						case 3:
+							uv2d[i] = null;
+							uv3d[i] = new float3[verts.Count];
+							uv4d[i] = null;
+							break;
+						case 4:
+							uv2d[i] = null;
+							uv3d[i] = null;
+							uv4d[i] = new float4[verts.Count];
+							break;
+					}
 				}
+				
 			}
 
 			if (verts.Count > 0)
 			{
 				for (int k = 0; k < num; k++)
 				{
-					switch (mesh.GetUV_Dimension(k))
+					if (uploadHint.GetUVChannel(k))
 					{
-						case 2:
-							mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], verts.Count);
-							break;
-						case 3:
-							mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], verts.Count);
-							break;
-						case 4:
-							mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], verts.Count);
-							break;
+						switch (mesh.GetUV_Dimension(k))
+						{
+							case 2:
+								mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], verts.Count);
+								break;
+							case 3:
+								mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], verts.Count);
+								break;
+							case 4:
+								mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], verts.Count);
+								break;
+						}
 					}
 				}
 			}

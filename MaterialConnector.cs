@@ -38,7 +38,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		else
 			Thundagun.QueuePacket(thing);
 
-		onDone(true);
+		onDone(firstRender);
 		firstRender = false;
 	}
 

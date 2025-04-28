@@ -164,11 +164,21 @@ public class TextureConnector : ITexture2DConnector
 		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
 			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
+
+		//UniLog.Log($"texture set properties {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
+
 		if (elem is null && LocalPath == "NULL")
 		{
-			if (onSet != null)
-				onSet(false);
-			return;
+			if (Asset?.Owner is GlyphAtlasManager atlasManager)
+			{
+				LocalPath = atlasManager.Font.Data.Name;
+			}
+			else
+			{
+				if (onSet != null)
+					onSet(false);
+				return;
+			}
 		}
 
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
@@ -201,10 +211,20 @@ public class TextureConnector : ITexture2DConnector
 			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 
 		var elem = Asset?.Owner as IWorldElement;
+
+		//UniLog.Log($"texture set format {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
+
 		if (elem is null && LocalPath == "NULL")
 		{
-			callOnDone();
-			return;
+			if (Asset?.Owner is GlyphAtlasManager atlasManager)
+			{
+				LocalPath = atlasManager.Font.Data.Name;
+			}
+			else
+			{
+				callOnDone();
+				return;
+			}
 		}
 
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
@@ -239,10 +259,20 @@ public class TextureConnector : ITexture2DConnector
 		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
 			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
+
+		//UniLog.Log($"texture set data {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
+
 		if (elem is null && LocalPath == "NULL")
 		{
-			onSet(false);
-			return;
+			if (Asset?.Owner is GlyphAtlasManager atlasManager)
+			{
+				LocalPath = atlasManager.Font.Data.Name;
+			}
+			else
+			{
+				onSet(false);
+				return;
+			}
 		}
 
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);

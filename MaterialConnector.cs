@@ -173,6 +173,10 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 				var texConn = tex?.Connector as TextureConnector;
 
 				var localPath = texConn?.LocalPath ?? "NULL";
+				if (localPath == "NULL" && texConn?.Asset?.Owner is GlyphAtlasManager atlasManager)
+				{
+					localPath = atlasManager.Font.Data.Name;
+				}
 				buffer.WriteString2(localPath);
 
 				var ownerId = texConn?.ownerId ?? default;

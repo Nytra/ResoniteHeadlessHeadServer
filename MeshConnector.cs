@@ -160,16 +160,17 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				}
 				MeshIndicies indicies = new();
 				indicies.topology = (int)submesh.Topology;
-				if (submesh.RawIndicies != null && submesh.RawIndicies.Length > 0)
+				indicies.indicies = new int[submesh.Count * submesh.IndiciesPerElement];
+				//int j = 0;
+				if (submesh.Count > 0)
 				{
-					indicies.indicies = new int[submesh.RawIndicies.Length];
-					int j = 0;
-					foreach (var index in submesh.RawIndicies)
-					{
-						indicies.indicies[j] = index;
-						j++;
-					}
+					Buffer.BlockCopy(submesh.RawIndicies, 0, indicies.indicies, 0, indicies.indicies.Length * 4);
 				}
+				//foreach (var index in submesh.RawIndicies)
+				//{
+				//indicies.indicies[j] = index;
+				//j++;
+				//}
 				submeshes.Add(indicies);
 			}
 

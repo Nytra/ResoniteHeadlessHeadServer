@@ -172,14 +172,20 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 				var tex = obj as ITexture;
 				var texConn = tex?.Connector as TextureConnector;
 
-				var localPath = texConn?.LocalPath ?? "NULL";
-				if (localPath == "NULL" && texConn?.Asset?.Owner is GlyphAtlasManager atlasManager)
+				//var localPath = texConn?.LocalPath ?? "NULL";
+				var LocalPath = texConn?.Asset?.AssetURL?.LocalPath ?? "NULL";
+				if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+					LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+				if (LocalPath == "NULL" && texConn?.Asset?.Owner is GlyphAtlasManager atlasManager)
 				{
-					localPath = atlasManager.Font.Data.Name;
+					LocalPath = atlasManager.Font.Data.Name;
 				}
-				buffer.WriteString2(localPath);
+				buffer.WriteString2(LocalPath);
 
-				var ownerId = texConn?.ownerId ?? default;
+				var elem = texConn?.Asset?.Owner as IWorldElement;
+				var ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+
+				//var ownerId = texConn?.ownerId ?? default;
 				buffer.Write(ownerId);
 			}
 		}

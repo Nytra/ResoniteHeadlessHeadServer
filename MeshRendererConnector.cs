@@ -1,5 +1,6 @@
 ﻿using FrooxEngine;
 using SharedMemory;
+using System;
 using System.Text;
 
 namespace Thundagun;
@@ -61,6 +62,10 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 	List<float> blendShapeWeights = new();
 	public bool enabled;
 	public ulong rendId;
+	public int sortingOrder;
+	public int shadowCastingMode;
+	public int motionVectorMode;
+	List<ulong> blockOwnerIds = new();
 
 	public ApplyChangesMeshRendererConnector(MeshRendererConnectorBase<T> owner) : base(owner)
 	{
@@ -70,10 +75,13 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 		var asset = owner.Owner.Material.Target?.Asset;
 		meshCompId = owner.MeshCompId;
 		meshPath = owner.MeshLocalPath;
-		if (meshPath.Length > Thundagun.MAX_STRING_LENGTH)
-			meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
+		//if (meshPath.Length > Thundagun.MAX_STRING_LENGTH)
+			//meshPath = meshPath.Substring(0, Math.Min(meshPath.Length, Thundagun.MAX_STRING_LENGTH));
 		enabled = owner.Owner.Enabled;
 		rendId = (owner.Owner.ReferenceID.Position << 8) | (owner.Owner.ReferenceID.User & 0xFFul);
+		sortingOrder = owner.Owner.SortingOrder.Value;
+		shadowCastingMode = (int)owner.Owner.ShadowCastMode.Value;
+		motionVectorMode = (int)owner.Owner.MotionVectorMode.Value;
 
 		int i = 0;
 		foreach (var mat in owner.Owner.Materials)
@@ -99,14 +107,14 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 				if (shad != null)
 				{
 					var shaderPath = shad.Asset?.AssetURL?.LocalPath ?? "NULL";
-					if (shaderPath.Length > Thundagun.MAX_STRING_LENGTH)
-						shaderPath = shaderPath.Substring(0, Math.Min(shaderPath.Length, Thundagun.MAX_STRING_LENGTH));
+					//if (shaderPath.Length > Thundagun.MAX_STRING_LENGTH)
+						//shaderPath = shaderPath.Substring(0, Math.Min(shaderPath.Length, Thundagun.MAX_STRING_LENGTH));
 					shaderLocalPaths.Add(shaderPath);
 					try
 					{
 						var shaderFilePath = ShaderConnector.LocalPathToFile[shaderPath];
-						if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
-							shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
+						//if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
+							//shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
 						shaderFilePaths.Add(shaderFilePath);
 					}
 					catch (Exception e)
@@ -128,7 +136,18 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			i++;
 		}
 
-		
+		foreach (var block in owner.Owner.MaterialPropertyBlocks)
+		{
+			var blockTarget = block?.Asset?.Owner as IWorldElement;
+			if (blockTarget != null)
+			{
+				blockOwnerIds.Add((blockTarget.ReferenceID.Position << 8) | (blockTarget.ReferenceID.User & 0xFFul));
+			}
+			else
+			{
+				blockOwnerIds.Add(default);
+			}
+		}
 
 		//UniLog.Log($"ApplyChangesMeshRenderer: {isSkinned} {matCompId} {meshCompId} {shaderPath} {meshPath}");
 
@@ -166,6 +185,10 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 		buffer.Write(enabled);
 
+		buffer.Write(sortingOrder);
+		buffer.Write(shadowCastingMode);
+		buffer.Write(motionVectorMode);
+
 		//buffer.Write(Encoding.UTF8.GetBytes(shaderFilePath));
 
 		//buffer.Write(Encoding.UTF8.GetBytes(shaderLocalPath));
@@ -184,6 +207,14 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 
 			ulong matCompId = matCompIds[i];
 			buffer.Write(matCompId);
+		}
+
+		int blockCount = blockOwnerIds.Count;
+		buffer.Write(blockCount);
+		for (int i = 0; i < blockCount; i++)
+		{
+			ulong blockId = blockOwnerIds[i];
+			buffer.Write(blockId);
 		}
 
 		buffer.WriteString2(meshPath);

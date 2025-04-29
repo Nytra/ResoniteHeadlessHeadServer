@@ -6,10 +6,10 @@ namespace Thundagun;
 
 public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISharedMaterialConnector, IAssetConnector, ISharedMaterialPropertySetter, IMaterialPropertySetter
 {
-	public bool firstRender = true;
+	
 	public string ShaderLocalPath;
 	public string ShaderFilePath;
-	public ulong ownerId;
+	
 	public Shader targetShader;
 	public void ApplyChanges(Shader shader, AssetIntegrated onDone)
 	{
@@ -32,7 +32,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		//UniLog.Log($"ApplyChangesMaterial: {ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {ShaderLocalPath} {ShaderFilePath}");
 
-		var thing = new ApplyChangesMaterialConnector(this);
+		var thing = new ApplyChangesMaterialConnectorBase(this);
 		if (Asset.HighPriorityIntegration)
 			Thundagun.QueueHighPriorityPacket(thing);
 		else
@@ -40,41 +40,39 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		onDone(firstRender);
 		firstRender = false;
+
 	}
 
-	public void SetInstancing(bool state)
-	{
-		Enqueue(new MaterialAction(ActionType.Instancing, -1, new float4(state ? 1 : 0)));
-	}
-
-	public void SetRenderQueue(int renderQueue)
-	{
-		Enqueue(new MaterialAction(ActionType.RenderQueue, -1, new float4(renderQueue)));
-	}
-
-	public void SetTag(MaterialTag tag, string value)
-	{
-		Enqueue(new MaterialAction(ActionType.Tag, (int)tag, float4.Zero, value));
-	}
+	
 }
 
-public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
+public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorBase>
 {
 	// upload material info, then upload actions in queue
 	string shaderFilePath;
 	string shaderLocalPath;
 	public Queue<MaterialConnectorBase.MaterialAction> actionQueue;
 	public ulong ownerId;
-	public ApplyChangesMaterialConnector(MaterialConnector owner) : base(owner)
+	public bool isPropertyBlock;
+	public ApplyChangesMaterialConnectorBase(MaterialConnectorBase owner) : base(owner)
 	{
-		shaderFilePath = owner.ShaderFilePath;
-		if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
-			shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
+		if (owner is MaterialConnector matConn)
+		{
+			shaderFilePath = matConn.ShaderFilePath;
+			//if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
+				//shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
 
-		shaderLocalPath = owner.ShaderLocalPath;
-		if (shaderLocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-			shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
-
+			shaderLocalPath = matConn.ShaderLocalPath;
+			//if (shaderLocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+				//shaderLocalPath = shaderLocalPath.Substring(0, Math.Min(shaderLocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		}
+		else
+		{
+			shaderFilePath = "NULL";
+			shaderLocalPath = "NULL";
+		}
+		
+		isPropertyBlock = owner.isPropertyBlock;
 		//actionQueue = new Queue<MaterialConnectorBase.MaterialAction>(owner.actionQueue);
 		actionQueue = owner.actionQueue;
 		ownerId = owner.ownerId;
@@ -89,6 +87,8 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 		buffer.WriteString2(shaderLocalPath);
 
 		buffer.Write(ownerId);
+
+		buffer.Write(isPropertyBlock);
 
 		int actionCount = Owner.actionQueue.Count;
 		buffer.Write(actionCount);
@@ -174,11 +174,15 @@ public class ApplyChangesMaterialConnector : UpdatePacket<MaterialConnector>
 
 				//var localPath = texConn?.LocalPath ?? "NULL";
 				var LocalPath = texConn?.Asset?.AssetURL?.LocalPath ?? "NULL";
-				if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-					LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+				//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+					//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 				if (LocalPath == "NULL" && texConn?.Asset?.Owner is GlyphAtlasManager atlasManager)
 				{
 					LocalPath = atlasManager.Font.Data.Name;
+				}
+				if (LocalPath == "NULL")
+				{
+					LocalPath = texConn?.GetHashCode().ToString() ?? "NULL";
 				}
 				buffer.WriteString2(LocalPath);
 

@@ -42,6 +42,9 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public Queue<MaterialAction> actionQueue = new();
 	public RawValueList<float4x4> matrices = new();
 	public static Queue<MaterialConnectorBase> initializingProperties = new();
+	public ulong ownerId;
+	public bool firstRender = true;
+	public bool isPropertyBlock;
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
@@ -99,6 +102,21 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public void SetTexture(int property, ITexture texture)
 	{
 		Enqueue(new MaterialAction(ActionType.Texture, property, float4.Zero, texture));
+	}
+
+	public void SetInstancing(bool state)
+	{
+		Enqueue(new MaterialAction(ActionType.Instancing, -1, new float4(state ? 1 : 0)));
+	}
+
+	public void SetRenderQueue(int renderQueue)
+	{
+		Enqueue(new MaterialAction(ActionType.RenderQueue, -1, new float4(renderQueue)));
+	}
+
+	public void SetTag(MaterialTag tag, string value)
+	{
+		Enqueue(new MaterialAction(ActionType.Tag, (int)tag, float4.Zero, value));
 	}
 
 	public void Unload()

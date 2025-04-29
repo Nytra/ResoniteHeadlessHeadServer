@@ -175,6 +175,10 @@ public class TextureConnector : ITexture2DConnector
 			}
 			else
 			{
+				LocalPath = GetHashCode().ToString() ?? "NULL";
+			}
+			if (LocalPath == "NULL")
+			{
 				if (onSet != null)
 					onSet(false);
 				return;
@@ -221,6 +225,10 @@ public class TextureConnector : ITexture2DConnector
 				LocalPath = atlasManager.Font.Data.Name;
 			}
 			else
+			{
+				LocalPath = GetHashCode().ToString() ?? "NULL";
+			}
+			if (LocalPath == "NULL")
 			{
 				callOnDone();
 				return;
@@ -269,6 +277,10 @@ public class TextureConnector : ITexture2DConnector
 				LocalPath = atlasManager.Font.Data.Name;
 			}
 			else
+			{
+				LocalPath = GetHashCode().ToString() ?? "NULL";
+			}
+			if (LocalPath == "NULL")
 			{
 				onSet(false);
 				return;

@@ -11,10 +11,8 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 	public string MeshLocalPath;
 	public override void ApplyChanges()
 	{
-		Task.Run(async () => 
-		{ 
-			await Task.Delay(1000);
-
+		World.RunInSeconds(1, () => 
+		{
 			var elem = Owner.Mesh?.Asset?.Owner as IWorldElement;
 			var localPath = Owner.Mesh?.Asset?.AssetURL?.LocalPath ?? "NULL";
 			if (elem is null && localPath == "NULL") return;
@@ -24,7 +22,6 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 
 			Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 		});
-		
 	}
 
 	public override void Destroy(bool destroyingWorld)

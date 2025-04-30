@@ -75,7 +75,7 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 64, 8388608); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong)) 
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16, 33554432); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong)) 
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
 		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 50, 1048576);
 		//frameSyncBuffer = new CircularBuffer($"FrameSyncBuffer{mainBufferId}", 2, 4);
@@ -133,23 +133,40 @@ public class Thundagun
 
 		Task.Run(ProcessPackets);
 		Task.Run(ReturnTask);
+		Engine.Current.RunPostInit(() => 
+		{
+			Engine.Current.WorldManager.WorldAdded += (World w) => 
+			{
+				w.RunInUpdates(1, () => SyncLoop(w));
+			};
+		});
 		//Engine.Current.GlobalCoroutineManager.RunInUpdates(1, () =>
 		//{
 			//FrameSyncLoop();
 		//});
 	}
-	//private static void FrameSyncLoop()
-	//{
-	//	Thread.Sleep((int)((1 / 30f) * 1000f));
-	//	Engine.Current.GlobalCoroutineManager.RunInUpdates(1, () => 
-	//	{ 
-	//		FrameSyncLoop();
-	//	});
-	//}
-	private static async void ProcessPackets()
+	private static bool ExitCheck(World w)
+	{
+		return Userspace.IsExitingApp || Engine.Current.ShutdownRequested || w.IsDisposed || w.IsDestroyed;
+	}
+	private static void SyncLoop(World w)
+	{
+		if (ExitCheck(w)) return;
+		while (packets.Count > 0 || highPriorityPackets.Count > 0)
+		{
+			if (ExitCheck(w)) return;
+			Thread.Sleep(1);
+		}
+		w.RunInUpdates(1, () => 
+		{ 
+			SyncLoop(w);
+		});
+	}
+	private static void ProcessPackets()
 	{
 		while (true)
 		{
+			if (buffer?.ShuttingDown ?? true) return;
 			try
 			{
 				if (highPriorityPackets.Count > 0)
@@ -296,6 +313,7 @@ public class Thundagun
 		int num;
 		while (true)
 		{
+			if (returnBuffer?.ShuttingDown ?? true) return;
 			try 
 			{
 				//returnBuffer.Read(out num);

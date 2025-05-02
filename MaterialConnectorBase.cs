@@ -41,10 +41,12 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public List<MaterialProperty> Properties = new();
 	public Queue<MaterialAction> actionQueue = new();
 	public RawValueList<float4x4> matrices = new();
-	public static Queue<MaterialConnectorBase> initializingProperties = new();
 	public ulong ownerId;
 	public bool firstRender = true;
 	public bool isPropertyBlock;
+	public static Dictionary<int, string> IdToPropName = new();
+	public static Dictionary<string, int> PropNameToId = new();
+	public static int propId = 0;
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
@@ -54,17 +56,19 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	{
 		var elem = Asset?.Owner as IWorldElement;
 
-		UniLog.Log($"InitializeMaterialProperties: {elem?.ReferenceID.ToString() ?? "NULL"} - {string.Join(',', properties.Select(p => p.Name))}");
+		//UniLog.Log($"InitializeMaterialProperties: {elem?.ReferenceID.ToString() ?? "NULL"} - {string.Join(',', properties.Select(p => p.Name))}");
 
 		Properties = properties;
 
-		initializingProperties.Enqueue(this);
-
-		Thundagun.QueueHighPriorityPacket(new InitializeMaterialPropertiesPacket(this));
-
 		foreach (var prop in properties)
 		{
-			prop.Initialize(-1); // Needed? Just so I can check on the other side if they are wrong...
+			if (!IdToPropName.ContainsValue(prop.Name))
+			{
+				IdToPropName[propId] = prop.Name;
+				PropNameToId[prop.Name] = propId;
+				propId++;
+			}
+			prop.Initialize(PropNameToId[prop.Name]);
 		}
 
 		onDone();
@@ -153,44 +157,44 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	}
 }
 
-public class InitializeMaterialPropertiesPacket : UpdatePacket<MaterialConnectorBase>
-{
-	public List<string> PropertyNames;
-	public List<int> PropertyIds;
-	public InitializeMaterialPropertiesPacket(MaterialConnectorBase owner) : base(owner)
-	{
-		PropertyNames = new();
-		foreach (var prop in owner.Properties)
-		{
-			PropertyNames.Add(prop.Name);
-		}
-	}
+//public class InitializeMaterialPropertiesPacket : UpdatePacket<MaterialConnectorBase>
+//{
+//	public List<string> PropertyNames;
+//	public List<int> PropertyIds;
+//	public InitializeMaterialPropertiesPacket(MaterialConnectorBase owner) : base(owner)
+//	{
+//		PropertyNames = new();
+//		foreach (var prop in owner.Properties)
+//		{
+//			PropertyNames.Add(prop.Name);
+//		}
+//	}
 
-	public override int Id => (int)PacketTypes.InitializeMaterialProperties;
+//	public override int Id => (int)PacketTypes.InitializeMaterialProperties;
 
-	public override void Serialize(BinaryWriter buffer)
-	{
-		int propCount = PropertyNames.Count;
-		buffer.Write(propCount);
-		foreach (var str in PropertyNames)
-		{
-			string newStr = str;
-			if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
-				newStr = str.Substring(0, Math.Min(str.Length, Thundagun.MAX_STRING_LENGTH));
-			buffer.WriteString2(newStr);
-		}
-	}
+//	public override void Serialize(BinaryWriter buffer)
+//	{
+//		int propCount = PropertyNames.Count;
+//		buffer.Write(propCount);
+//		foreach (var str in PropertyNames)
+//		{
+//			string newStr = str;
+//			if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
+//				newStr = str.Substring(0, Math.Min(str.Length, Thundagun.MAX_STRING_LENGTH));
+//			buffer.WriteString2(newStr);
+//		}
+//	}
 
-	public override void Deserialize(BinaryReader buffer)
-	{
-		int propCount;
-		propCount = buffer.ReadInt32();
-		PropertyIds = new();
-		for (int i = 0; i < propCount; i++)
-		{
-			var id = buffer.ReadInt32();
-			PropertyIds.Add(id);
+//	public override void Deserialize(BinaryReader buffer)
+//	{
+//		int propCount;
+//		propCount = buffer.ReadInt32();
+//		PropertyIds = new();
+//		for (int i = 0; i < propCount; i++)
+//		{
+//			var id = buffer.ReadInt32();
+//			PropertyIds.Add(id);
 
-		}
-	}
-}
+//		}
+//	}
+//}

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using FrooxEngine;
 using SharedMemory;
+using System.Reflection;
 
 namespace Thundagun;
 
@@ -17,6 +18,8 @@ public class Thundagun
 	private static Queue<PacketStruct> highPriorityPackets = new();
 	private static int mainBufferId;
 	public const int MAX_STRING_LENGTH = 256; // UTF8
+
+	private static FieldInfo lastUpdateTimeField = typeof(Engine).GetField("lastUpdateTime", BindingFlags.NonPublic | BindingFlags.Instance);
 
 	//public static MemoryStream ms = new();
 	//public static BinaryWriter bw = new(ms);
@@ -84,6 +87,7 @@ public class Thundagun
 
 		Engine.Current.OnShutdown += () => 
 		{ 
+			UniLog.Log("SHUTTING DOWN");
 			buffer.Close();
 			buffer = null;
 			syncBuffer?.Close();
@@ -147,7 +151,11 @@ public class Thundagun
 	}
 	private static bool ExitCheck(World w)
 	{
-		return Userspace.IsExitingApp || Engine.Current.ShutdownRequested || w.IsDisposed || w.IsDestroyed;
+		return Userspace.IsExitingApp || 
+			w.Engine.ShutdownRequested || 
+			w.IsDisposed || 
+			w.IsDestroyed || 
+			(DateTime.UtcNow - (DateTime)lastUpdateTimeField.GetValue(Engine.Current)).TotalSeconds >= 10;
 	}
 	private static void SyncLoop(World w)
 	{
@@ -343,30 +351,54 @@ public class Thundagun
 
 				if (num != 0)
 				{
-					if (num == (int)PacketTypes.InitializeMaterialProperties)
-					{
-						var matConn = MaterialConnector.initializingProperties.Dequeue();
+					//if (num == (int)PacketTypes.InitializeMaterialProperties)
+					//{
+					//	var matConn = MaterialConnector.initializingProperties.Dequeue();
 
-						InitializeMaterialPropertiesPacket deserializedObject = new(matConn);
-						deserializedObject.Deserialize(br);
+					//	InitializeMaterialPropertiesPacket deserializedObject = new(matConn);
+					//	deserializedObject.Deserialize(br);
 
-						UniLog.Log($"InitializeMaterialProperties ReturnPacket Data: {string.Join(',', deserializedObject.PropertyIds)}");
+					//	UniLog.Log($"InitializeMaterialProperties ReturnPacket Data: {string.Join(',', deserializedObject.PropertyIds)}");
 
-						int i = 0;
-						foreach (var prop in matConn.Properties)
-						{
-							try
-							{
-								prop.GetType().GetProperty("Index").SetValue(prop, deserializedObject.PropertyIds[i]);
-								//prop.Initialize(deserializedObject.PropertyIds[i]);
-							}
-							catch (Exception e)
-							{
-								UniLog.Warning($"Error when initializing material property: {e}");
-							}
-							i += 1;
-						}
-					}
+					//	int i = 0;
+					//	foreach (var prop in matConn.Properties)
+					//	{
+					//		try
+					//		{
+					//			prop.GetType().GetProperty("Index").SetValue(prop, deserializedObject.PropertyIds[i]);
+					//			//prop.Initialize(deserializedObject.PropertyIds[i]);
+					//		}
+					//		catch (Exception e)
+					//		{
+					//			UniLog.Warning($"Error when initializing material property: {e}");
+					//		}
+					//		i += 1;
+					//	}
+
+					//	var onDone = MaterialConnectorBase.onDoneActions.Dequeue();
+					//	onDone.Invoke();
+
+					//	var matConn2 = matConn as MaterialConnector;
+					//	if (matConn2 != null && matConn2.ShaderLocalPath != null)
+					//	{
+					//		if (ShaderConnector.onDoneActions.TryGetValue(matConn2.ShaderLocalPath, out var assInt))
+					//		{
+					//			assInt.Invoke(true);
+					//			ShaderConnector.onDoneActions.Remove(matConn2.ShaderLocalPath);
+					//		}
+					//		//ShaderConnector.onDoneActions[matConn.].Invoke(true);
+					//	}
+
+					//	var provider = matConn.Asset?.Owner as MaterialProvider;
+					//	if (provider != null)
+					//	{
+					//		provider.World.RunSynchronously(()  => 
+					//		{
+					//			provider.GetType().GetField("LocalManualUpdate").SetValue(provider, true);
+					//			provider.GetType().GetMethod("UpdateAsset", BindingFlags.NonPublic | BindingFlags.Instance, []).Invoke(provider, null);
+					//		});
+					//	}
+					//}
 				}
 			}
 			catch (Exception e) 

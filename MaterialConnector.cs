@@ -32,6 +32,12 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		//UniLog.Log($"ApplyChangesMaterial: {ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {ShaderLocalPath} {ShaderFilePath}");
 
+		//if (ShaderConnector.onDoneActions.TryGetValue(ShaderLocalPath, out var action))
+		//{
+			//action.Invoke(true);
+			//ShaderConnector.onDoneActions.Remove(ShaderLocalPath);
+		//}
+
 		var thing = new ApplyChangesMaterialConnectorBase(this);
 		if (Asset.HighPriorityIntegration)
 			Thundagun.QueueHighPriorityPacket(thing);
@@ -40,10 +46,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		onDone(firstRender);
 		firstRender = false;
-
 	}
-
-	
 }
 
 public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorBase>
@@ -103,8 +106,17 @@ public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorB
 			object obj = action.obj; // string, string, List<float>, List<float4>, itexture - TYPES: flag, tag, floatarray, float4array, texture
 
 			buffer.Write(type);
-			buffer.Write(propertyIndex);
-			
+
+			string propName;
+			if (MaterialConnectorBase.IdToPropName.TryGetValue(propertyIndex, out propName))
+			{
+				buffer.WriteString2(propName);
+			}
+			else
+			{
+				buffer.WriteString2("oof");
+			}
+
 			// write float4
 
 			float f0,f1,f2,f3;

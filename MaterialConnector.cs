@@ -32,12 +32,6 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		//UniLog.Log($"ApplyChangesMaterial: {ownerId}, Actions Count: {actionQueue?.Count ?? -1}, {ShaderLocalPath} {ShaderFilePath}");
 
-		//if (ShaderConnector.onDoneActions.TryGetValue(ShaderLocalPath, out var action))
-		//{
-			//action.Invoke(true);
-			//ShaderConnector.onDoneActions.Remove(ShaderLocalPath);
-		//}
-
 		var thing = new ApplyChangesMaterialConnectorBase(this);
 		if (Asset.HighPriorityIntegration)
 			Thundagun.QueueHighPriorityPacket(thing);
@@ -46,6 +40,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		onDone(firstRender);
 		firstRender = false;
+
 	}
 }
 

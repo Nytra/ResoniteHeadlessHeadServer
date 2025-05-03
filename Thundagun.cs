@@ -78,7 +78,7 @@ public class Thundagun
 
 		Console.WriteLine($"Server: Opening main buffer with id {mainBufferId}.");
 
-		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 16, 33554432); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong)) 
+		buffer = new CircularBuffer($"MyBuffer{mainBufferId}", 2, 134217728); // MathX.Max(Thundagun.MAX_STRING_LENGTH, sizeof(ulong)) 
 		syncBuffer = new BufferReadWrite($"SyncBuffer{DateTime.Now.Minute}", sizeof(int));
 		returnBuffer = new CircularBuffer($"ReturnBuffer{mainBufferId}", 50, 1048576);
 		//frameSyncBuffer = new CircularBuffer($"FrameSyncBuffer{mainBufferId}", 2, 4);
@@ -201,7 +201,7 @@ public class Thundagun
 							byte[] arr = ms.ToArray();
 							int len = arr.Length;
 							buffer.Write(ref len);
-							buffer.Write(arr);
+							buffer.Write(arr, timeout: 5000);
 						}
 						catch (Exception e)
 						{
@@ -254,7 +254,7 @@ public class Thundagun
 									byte[] arr = ms2.ToArray();
 									int len2 = arr.Length;
 									buffer.Write(ref len2);
-									buffer.Write(arr);
+									buffer.Write(arr, timeout: 5000);
 								}
 								catch (Exception e)
 								{
@@ -286,7 +286,7 @@ public class Thundagun
 							byte[] arr = ms.ToArray();
 							int len = arr.Length;
 							buffer.Write(ref len);
-							buffer.Write(arr);
+							buffer.Write(arr, timeout: 5000);
 						}
 						catch (Exception e)
 						{
@@ -448,5 +448,6 @@ public enum PacketTypes
 	InitializeMaterialProperties,
 	SetFormatTexture,
 	SetPropertiesTexture,
-	SetDataTexture
+	SetDataTexture,
+	ApplyChangesLight
 }

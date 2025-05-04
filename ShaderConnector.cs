@@ -42,26 +42,26 @@ public class ShaderConnector : IShaderConnector
 	}
 }
 
-public class LoadFromFileShaderConnector : UpdatePacket<ShaderConnector>
-{
-	string File;
-	string LocalPath;
-	public LoadFromFileShaderConnector(ShaderConnector owner) : base(owner)
-	{
-		File = owner.File;
-		if (File.Length > Thundagun.MAX_STRING_LENGTH)
-			File = owner.File.Substring(0, Math.Min(owner.File.Length, Thundagun.MAX_STRING_LENGTH));
-		LocalPath = owner.LocalPath;
-		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-			LocalPath = owner.LocalPath.Substring(0, Math.Min(owner.LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
-	}
+//public class LoadFromFileShaderConnector : UpdatePacket<ShaderConnector>
+//{
+//	string File;
+//	string LocalPath;
+//	public LoadFromFileShaderConnector(ShaderConnector owner) : base(owner)
+//	{
+//		File = owner.File;
+//		if (File.Length > Thundagun.MAX_STRING_LENGTH)
+//			File = owner.File.Substring(0, Math.Min(owner.File.Length, Thundagun.MAX_STRING_LENGTH));
+//		LocalPath = owner.LocalPath;
+//		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+//			LocalPath = owner.LocalPath.Substring(0, Math.Min(owner.LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+//	}
 
-	public override int Id => (int)PacketTypes.LoadFromFileShader;
+//	public override int Id => (int)PacketTypes.LoadFromFileShader;
 
-	public override void Serialize(BinaryWriter buffer)
-	{
-		buffer.WriteString2(File);
+//	public override void Serialize(BinaryWriter buffer)
+//	{
+//		buffer.WriteString2(File);
 
-		buffer.WriteString2(LocalPath);
-	}
-}
+//		buffer.WriteString2(LocalPath);
+//	}
+//}

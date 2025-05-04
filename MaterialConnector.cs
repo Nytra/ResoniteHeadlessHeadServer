@@ -25,6 +25,7 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 			//UniLog.Warning($"Shader file path is null.");
 			ShaderFilePath = "NULL";
 		}
+
 		var owner = Asset?.Owner as IWorldElement;
 
 		//if (ShaderPath == "NULL") return;
@@ -41,7 +42,6 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 
 		onDone(firstRender);
 		firstRender = false;
-
 	}
 }
 
@@ -131,8 +131,8 @@ public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorB
 				if ((string)obj != null)
 				{
 					string newStr = (string)obj;
-					if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
-						newStr = newStr.Substring(0, Math.Min(newStr.Length, Thundagun.MAX_STRING_LENGTH));
+					//if (newStr.Length > Thundagun.MAX_STRING_LENGTH)
+						//newStr = newStr.Substring(0, Math.Min(newStr.Length, Thundagun.MAX_STRING_LENGTH));
 					buffer.WriteString2(newStr);
 				}
 				else
@@ -185,17 +185,19 @@ public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorB
 				var LocalPath = texConn?.LocalPath ?? "NULL";
 				//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
 					//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
-				if (LocalPath == "NULL" && texConn?.Asset?.Owner is GlyphAtlasManager atlasManager)
-				{
-					var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
-					var elem2 = atlasManager.Texture?.Owner as IWorldElement;
-					var texId = elem2?.ReferenceID.ToString();
-					LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
-				}
-				if (LocalPath == "NULL")
-				{
+
+				//if (LocalPath == "NULL" && texConn?.Asset?.Owner is GlyphAtlasManager atlasManager)
+				//{
+				//	var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+				//	var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+				//	var texId = elem2?.ReferenceID.ToString();
+				//	LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
+				//}
+
+				//if (LocalPath == "NULL")
+				//{
 					//LocalPath = texConn?.GetHashCode().ToString() ?? "NULL";
-				}
+				//}
 				buffer.WriteString2(LocalPath);
 
 				//var elem = texConn?.Asset?.Owner as IWorldElement;

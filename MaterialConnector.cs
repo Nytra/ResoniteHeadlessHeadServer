@@ -1,12 +1,13 @@
 ﻿using Elements.Core;
 using FrooxEngine;
 using SharedMemory;
+using System.Collections;
+using System.Text;
 
 namespace Thundagun;
 
 public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISharedMaterialConnector, IAssetConnector, ISharedMaterialPropertySetter, IMaterialPropertySetter
 {
-	
 	public string ShaderLocalPath;
 	public string ShaderFilePath;
 	
@@ -72,7 +73,8 @@ public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorB
 		
 		isPropertyBlock = owner.isPropertyBlock;
 		//actionQueue = new Queue<MaterialConnectorBase.MaterialAction>(owner.actionQueue);
-		actionQueue = owner.actionQueue;
+		actionQueue = new Queue<MaterialConnectorBase.MaterialAction>(owner.actionQueue);
+		owner.actionQueue.Clear();
 		ownerId = owner.ownerId;
 	}
 
@@ -88,11 +90,11 @@ public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorB
 
 		buffer.Write(isPropertyBlock);
 
-		int actionCount = Owner.actionQueue.Count;
+		int actionCount = actionQueue.Count;
 		buffer.Write(actionCount);
-		while (Owner.actionQueue != null && Owner.actionQueue.Count > 0)
+		while (actionQueue != null && actionQueue.Count > 0)
 		{
-			MaterialConnectorBase.MaterialAction action = Owner.actionQueue.Dequeue();
+			MaterialConnectorBase.MaterialAction action = actionQueue.Dequeue();
 			// int, int, float4, object
 
 			int type = (int)action.type;
@@ -180,24 +182,28 @@ public class ApplyChangesMaterialConnectorBase : UpdatePacket<MaterialConnectorB
 				var texConn = tex?.Connector as TextureConnector;
 
 				//var localPath = texConn?.LocalPath ?? "NULL";
-				var LocalPath = texConn?.Asset?.AssetURL?.LocalPath ?? "NULL";
+				var LocalPath = texConn?.LocalPath ?? "NULL";
 				//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
 					//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 				if (LocalPath == "NULL" && texConn?.Asset?.Owner is GlyphAtlasManager atlasManager)
 				{
-					LocalPath = atlasManager.Font.Data.Name;
+					var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+					var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+					var texId = elem2?.ReferenceID.ToString();
+					LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
 				}
 				if (LocalPath == "NULL")
 				{
-					LocalPath = texConn?.GetHashCode().ToString() ?? "NULL";
+					//LocalPath = texConn?.GetHashCode().ToString() ?? "NULL";
 				}
 				buffer.WriteString2(LocalPath);
 
-				var elem = texConn?.Asset?.Owner as IWorldElement;
-				var ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+				//var elem = texConn?.Asset?.Owner as IWorldElement;
+				//var ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+				var texOwnerId = texConn?.ownerId ?? default;
 
 				//var ownerId = texConn?.ownerId ?? default;
-				buffer.Write(ownerId);
+				buffer.Write(texOwnerId);
 			}
 		}
 	}

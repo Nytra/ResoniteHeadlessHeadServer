@@ -1,6 +1,7 @@
 ﻿using FrooxEngine;
 using SharedMemory;
 using System;
+using System.Reflection;
 using System.Text;
 
 namespace Thundagun;
@@ -11,17 +12,19 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 	public string MeshLocalPath;
 	public override void ApplyChanges()
 	{
-		World.RunInSeconds(1, () => 
-		{
-			var elem = Owner.Mesh?.Asset?.Owner as IWorldElement;
-			var localPath = Owner.Mesh?.Asset?.AssetURL?.LocalPath ?? "NULL";
-			if (elem is null && localPath == "NULL") return;
-			//if (elem is null) return;
-			MeshCompId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
-			MeshLocalPath = localPath;
+		//World.RunInSeconds(5, () => 
+		//{
+			
+		//});
 
-			Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
-		});
+		var elem = Owner.Mesh?.Asset?.Owner as IWorldElement;
+		var localPath = Owner.Mesh?.Asset?.AssetURL?.LocalPath ?? "NULL";
+		if (elem is null && localPath == "NULL") return;
+		//if (elem is null) return;
+		MeshCompId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+		MeshLocalPath = localPath;
+
+		Thundagun.QueuePacket(new ApplyChangesMeshRendererConnector<T>(this));
 	}
 
 	public override void Destroy(bool destroyingWorld)
@@ -99,11 +102,12 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 			var matprovider = materialTarget as MaterialProvider;
 			if (matprovider != null)
 			{
-				HashSet<StaticShader> hashset = matprovider.GetProviders<StaticShader>();
-				var shad = hashset.FirstOrDefault(sh => sh != null);
-				if (shad != null)
+				//HashSet<StaticShader> hashset = matprovider.GetProviders<StaticShader>();
+				var shader = (Shader)matprovider.GetType().GetMethod("GetShader", BindingFlags.NonPublic |  BindingFlags.Instance).Invoke(matprovider, null);
+				//var shad = hashset.FirstOrDefault(sh => sh != null);
+				if (shader != null)
 				{
-					var shaderPath = shad.Asset?.AssetURL?.LocalPath ?? "NULL";
+					var shaderPath = shader.AssetURL?.LocalPath ?? "NULL";
 					//if (shaderPath.Length > Thundagun.MAX_STRING_LENGTH)
 						//shaderPath = shaderPath.Substring(0, Math.Min(shaderPath.Length, Thundagun.MAX_STRING_LENGTH));
 					shaderLocalPaths.Add(shaderPath);

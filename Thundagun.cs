@@ -449,5 +449,6 @@ public enum PacketTypes
 	SetFormatTexture,
 	SetPropertiesTexture,
 	SetDataTexture,
-	ApplyChangesLight
+	ApplyChangesLight,
+	ApplyChangesSkybox
 }

@@ -46,7 +46,7 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public bool isPropertyBlock;
 	public static Dictionary<int, string> IdToPropName = new();
 	public static Dictionary<string, int> PropNameToId = new();
-	public static int propId = 0;
+	public static int propId = 9999;
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
@@ -121,6 +121,11 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 	public void SetTag(MaterialTag tag, string value)
 	{
 		Enqueue(new MaterialAction(ActionType.Tag, (int)tag, float4.Zero, value));
+	}
+
+	public void SetFlag(string flag, bool state)
+	{
+		Enqueue(new MaterialAction(ActionType.Flag, -1, new float4(state ? 1 : 0), flag));
 	}
 
 	public void Unload()

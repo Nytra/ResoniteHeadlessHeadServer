@@ -144,8 +144,8 @@ public class TextureConnector : ITexture2DConnector
 	{
 		Asset = asset;
 		LocalPath = asset?.AssetURL?.LocalPath ?? "NULL";
-		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 	}
@@ -161,21 +161,24 @@ public class TextureConnector : ITexture2DConnector
 		_mipmapBias = mipmapBias;
 
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
-		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
-
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		//UniLog.Log($"texture set properties {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
 
 		if (elem is null && LocalPath == "NULL")
 		{
 			if (Asset?.Owner is GlyphAtlasManager atlasManager)
 			{
-				LocalPath = atlasManager.Font.Data.Name;
+				var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+				var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+				var texId = elem2?.ReferenceID.ToString();
+				LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
 			}
 			else
 			{
-				LocalPath = GetHashCode().ToString() ?? "NULL";
+				//LocalPath = GetHashCode().ToString() ?? "NULL";
 			}
 			if (LocalPath == "NULL")
 			{
@@ -185,7 +188,7 @@ public class TextureConnector : ITexture2DConnector
 			}
 		}
 
-		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+		
 
 		if (Asset.HighPriorityIntegration)
 			Thundagun.QueueHighPriorityPacket(new SetPropertiesTextureConnector(this));
@@ -211,22 +214,25 @@ public class TextureConnector : ITexture2DConnector
 		_textureFormatData = textureFormatData;
 
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
-		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 
 		var elem = Asset?.Owner as IWorldElement;
-
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		//UniLog.Log($"texture set format {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
 
 		if (elem is null && LocalPath == "NULL")
 		{
 			if (Asset?.Owner is GlyphAtlasManager atlasManager)
 			{
-				LocalPath = atlasManager.Font.Data.Name;
+				var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+				var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+				var texId = elem2?.ReferenceID.ToString();
+				LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
 			}
 			else
 			{
-				LocalPath = GetHashCode().ToString() ?? "NULL";
+				//LocalPath = GetHashCode().ToString() ?? "NULL";
 			}
 			if (LocalPath == "NULL")
 			{
@@ -235,7 +241,7 @@ public class TextureConnector : ITexture2DConnector
 			}
 		}
 
-		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+		
 
 		Thundagun.QueueHighPriorityPacket(new SetFormatTextureConnector(this));
 
@@ -264,21 +270,24 @@ public class TextureConnector : ITexture2DConnector
 		_textureUploadData = textureUploadData;
 
 		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
-		if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-			LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
+			//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
-
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 		//UniLog.Log($"texture set data {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
 
 		if (elem is null && LocalPath == "NULL")
 		{
 			if (Asset?.Owner is GlyphAtlasManager atlasManager)
 			{
-				LocalPath = atlasManager.Font.Data.Name;
+				var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+				var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+				var texId = elem2?.ReferenceID.ToString();
+				LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
 			}
 			else
 			{
-				LocalPath = GetHashCode().ToString() ?? "NULL";
+				//LocalPath = GetHashCode().ToString() ?? "NULL";
 			}
 			if (LocalPath == "NULL")
 			{
@@ -287,7 +296,7 @@ public class TextureConnector : ITexture2DConnector
 			}
 		}
 
-		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+		
 
 		if (Asset.HighPriorityIntegration)
 			Thundagun.QueueHighPriorityPacket(new SetDataTextureConnector(this));
@@ -304,7 +313,7 @@ public class TextureConnector : ITexture2DConnector
 
 public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 {
-	TextureConnector.TextureFormatData formatData;
+	//TextureConnector.TextureFormatData formatData;
 	bool propertiesDirty;
 	TextureFilterMode filterMode;
 	int anisoLevel;
@@ -313,10 +322,15 @@ public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 	float mipMapBias;
 	string localPath;
 	ulong ownerId;
+	int type;
+	int format;
+	int width;
+	int height;
+	int mips;
 
 	public SetFormatTextureConnector(TextureConnector owner) : base(owner)
 	{
-		formatData = owner._textureFormatData;
+		var formatData = owner._textureFormatData;
 		propertiesDirty = owner._texturePropertiesDirty;
 		owner._texturePropertiesDirty = false;
 		filterMode = owner._filterMode;
@@ -326,6 +340,11 @@ public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 		mipMapBias = owner._mipmapBias;
 		localPath = owner.LocalPath;
 		ownerId = owner.ownerId;
+		type = (int)formatData.type;
+		format = (int)formatData.format;
+		width = formatData.width;
+		height = formatData.height;
+		mips = formatData.mips;
 	}
 
 	public override int Id => (int)PacketTypes.SetFormatTexture;
@@ -336,17 +355,15 @@ public class SetFormatTextureConnector : UpdatePacket<TextureConnector>
 
 		buffer.Write(ownerId);
 
-		int type = (int)formatData.type;
 		buffer.Write(type);
 
-		int format = (int)formatData.format;
 		buffer.Write(format);
 
-		buffer.Write(formatData.width);
+		buffer.Write(width);
 
-		buffer.Write(formatData.height);
+		buffer.Write(height);
 
-		buffer.Write(formatData.mips);
+		buffer.Write(mips);
 
 		buffer.Write(propertiesDirty);
 
@@ -424,11 +441,21 @@ public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 	TextureConnector.TextureUploadData uploadData;
 	string localPath;
 	ulong ownerId;
+	int startMip;
+	int format;
+	double bitsPerPixel;
+	bool readable;
+	byte[] data;
 	public SetDataTextureConnector(TextureConnector owner) : base(owner)
 	{
 		uploadData = owner._textureUploadData;
 		localPath = owner.LocalPath;
 		ownerId = owner.ownerId;
+		startMip = owner._textureUploadData.startMip;
+		format = (int)owner._textureUploadData.Format;
+		bitsPerPixel = owner._textureUploadData.Format.GetBitsPerPixel();
+		readable = owner._textureUploadData.hint2D.readable;
+		data = (byte[])owner._textureUploadData.bitmap2D.RawData.Clone();
 	}
 
 	public override int Id => (int)PacketTypes.SetDataTexture;
@@ -439,22 +466,20 @@ public class SetDataTextureConnector : UpdatePacket<TextureConnector>
 
 		buffer.Write(ownerId);
 
-		buffer.Write(uploadData.startMip);
+		buffer.Write(startMip);
 
-		int format = (int)uploadData.Format;
 		buffer.Write(format);
 
-		double bitsPerPixel = uploadData.Format.GetBitsPerPixel();
 		buffer.Write(bitsPerPixel);
 
-		buffer.Write(uploadData.hint2D.readable);
+		buffer.Write(readable);
 
 		// write bitmap2d
 
-		int arrLen = uploadData.bitmap2D.RawData.Length;
+		int arrLen = data.Length;
 		buffer.Write(arrLen);
 
-		buffer.Write(uploadData.bitmap2D.RawData);
+		buffer.Write(data);
 
 		//foreach (var byt in uploadData.bitmap2D.RawData)
 		//{

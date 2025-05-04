@@ -28,6 +28,9 @@ public class TextureConnector : ITexture2DConnector
 	TextureFormatData _lastFormat;
 	int _lastMips;
 
+	//public static int instCount = 0;
+	//public int thisInstCount;
+
 	public enum TextureType
 	{
 		Texture2D,
@@ -143,9 +146,13 @@ public class TextureConnector : ITexture2DConnector
 	public void Initialize(Asset asset)
 	{
 		Asset = asset;
+		var tex = asset as Texture2D;
 		LocalPath = asset?.AssetURL?.LocalPath ?? "NULL";
+		//LocalPath += instCount.ToString();
+		//thisInstCount = instCount;
+		//instCount++;
 		//if (LocalPath.Length > Thundagun.MAX_STRING_LENGTH)
-			//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
+		//LocalPath = LocalPath.Substring(0, Math.Min(LocalPath.Length, Thundagun.MAX_STRING_LENGTH));
 		var elem = Asset?.Owner as IWorldElement;
 		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 	}
@@ -163,25 +170,29 @@ public class TextureConnector : ITexture2DConnector
 		var elem = Asset?.Owner as IWorldElement;
 		if (LocalPath == "NULL")
 		{
-			var tex = Asset as Texture2D;
-			LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
-			LocalPath += tex?.ActualLoadedVariant ?? "NULL";
-			if (LocalPath == "NULL")
+			
+		}
+
+		var tex = Asset as Texture2D;
+		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+		//LocalPath += thisInstCount.ToString();
+		if (LocalPath == "NULL")
+		{
+			if (Asset?.Owner is GlyphAtlasManager atlasManager)
 			{
-				if (Asset?.Owner is GlyphAtlasManager atlasManager)
-				{
-					var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
-					var elem2 = atlasManager.Texture?.Owner as IWorldElement;
-					var texId = elem2?.ReferenceID.ToString();
-					LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
-				}
+				var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+				var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+				var texId = elem2?.ReferenceID.ToString();
+				LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
 			}
 		}
 
 		if (ownerId == default)
 		{
-			ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+			
 		}
+
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 
 		//UniLog.Log($"texture set properties {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
 
@@ -220,25 +231,29 @@ public class TextureConnector : ITexture2DConnector
 		var elem = Asset?.Owner as IWorldElement;
 		if (LocalPath == "NULL")
 		{
-			var tex = Asset as Texture2D;
-			LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
-			LocalPath += tex?.ActualLoadedVariant ?? "NULL";
-			if (LocalPath == "NULL")
+			
+		}
+
+		var tex = Asset as Texture2D;
+		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+		//LocalPath += thisInstCount.ToString();
+		if (LocalPath == "NULL")
+		{
+			if (Asset?.Owner is GlyphAtlasManager atlasManager)
 			{
-				if (Asset?.Owner is GlyphAtlasManager atlasManager)
-				{
-					var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
-					var elem2 = atlasManager.Texture?.Owner as IWorldElement;
-					var texId = elem2?.ReferenceID.ToString();
-					LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
-				}
+				var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+				var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+				var texId = elem2?.ReferenceID.ToString();
+				LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
 			}
 		}
 
 		if (ownerId == default)
 		{
-			ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+			
 		}
+
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
 
 		//UniLog.Log($"texture set format {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
 
@@ -277,26 +292,30 @@ public class TextureConnector : ITexture2DConnector
 		var elem = Asset?.Owner as IWorldElement;
 		if (LocalPath == "NULL")
 		{
-			var tex = Asset as Texture2D;
-			LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
-			LocalPath += tex?.ActualLoadedVariant ?? "NULL";
-			if (LocalPath == "NULL")
+			
+		}
+
+		var tex = Asset as Texture2D;
+		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+		//LocalPath += thisInstCount.ToString();
+		if (LocalPath == "NULL")
+		{
+			if (Asset?.Owner is GlyphAtlasManager atlasManager)
 			{
-				if (Asset?.Owner is GlyphAtlasManager atlasManager)
-				{
-					var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
-					var elem2 = atlasManager.Texture?.Owner as IWorldElement;
-					var texId = elem2?.ReferenceID.ToString();
-					LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
-				}
+				var texPath = atlasManager.Texture?.AssetURL?.LocalPath;
+				var elem2 = atlasManager.Texture?.Owner as IWorldElement;
+				var texId = elem2?.ReferenceID.ToString();
+				LocalPath = atlasManager.Font.Data.Name + (texPath ?? texId ?? "");
 			}
 		}
 
 		if (ownerId == default)
 		{
-			ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+			
 		}
-		
+
+		ownerId = ((elem?.ReferenceID.Position ?? default) << 8) | ((elem?.ReferenceID.User ?? default) & 0xFFul);
+
 		//UniLog.Log($"texture set data {elem?.ReferenceID} {LocalPath} {Asset?.AssetURL}");
 
 		if (elem is null && LocalPath == "NULL")

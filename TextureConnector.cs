@@ -163,7 +163,9 @@ public class TextureConnector : ITexture2DConnector
 		var elem = Asset?.Owner as IWorldElement;
 		if (LocalPath == "NULL")
 		{
+			var tex = Asset as Texture2D;
 			LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+			LocalPath += tex?.ActualLoadedVariant ?? "NULL";
 			if (LocalPath == "NULL")
 			{
 				if (Asset?.Owner is GlyphAtlasManager atlasManager)
@@ -218,7 +220,9 @@ public class TextureConnector : ITexture2DConnector
 		var elem = Asset?.Owner as IWorldElement;
 		if (LocalPath == "NULL")
 		{
+			var tex = Asset as Texture2D;
 			LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+			LocalPath += tex?.ActualLoadedVariant ?? "NULL";
 			if (LocalPath == "NULL")
 			{
 				if (Asset?.Owner is GlyphAtlasManager atlasManager)
@@ -273,7 +277,9 @@ public class TextureConnector : ITexture2DConnector
 		var elem = Asset?.Owner as IWorldElement;
 		if (LocalPath == "NULL")
 		{
+			var tex = Asset as Texture2D;
 			LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+			LocalPath += tex?.ActualLoadedVariant ?? "NULL";
 			if (LocalPath == "NULL")
 			{
 				if (Asset?.Owner is GlyphAtlasManager atlasManager)

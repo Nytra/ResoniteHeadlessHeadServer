@@ -18,13 +18,15 @@ public class MaterialConnector : MaterialConnectorBase, IMaterialConnector, ISha
 		ShaderLocalPath = targetShader?.AssetURL?.LocalPath ?? "NULL";
 		try
 		{
-			ShaderFilePath = ShaderConnector.LocalPathToFile[ShaderLocalPath];
+			ShaderFilePath = ShaderConnector.LocalPathToFile[ShaderLocalPath + shader.VariantIndex?.ToString() ?? ""];
 		}
 		catch (Exception e)
 		{
 			//UniLog.Warning($"Shader file path is null.");
 			ShaderFilePath = "NULL";
 		}
+
+		//ShaderFilePath = ShaderConnector.ShaderToFile[shader.Connector as ShaderConnector];
 
 		var owner = Asset?.Owner as IWorldElement;
 

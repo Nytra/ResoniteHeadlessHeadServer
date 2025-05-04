@@ -12,7 +12,7 @@ public class MeshRendererConnectorBase<T> : Connector<T> where T : MeshRenderer
 	public string MeshLocalPath;
 	public override void ApplyChanges()
 	{
-		//World.RunInSeconds(5, () => 
+		//World.RunInSeconds(1, () =>
 		//{
 			
 		//});
@@ -113,7 +113,8 @@ public class ApplyChangesMeshRendererConnector<T> : UpdatePacket<MeshRendererCon
 					shaderLocalPaths.Add(shaderPath);
 					try
 					{
-						var shaderFilePath = ShaderConnector.LocalPathToFile[shaderPath];
+						var shaderFilePath = ShaderConnector.LocalPathToFile[shaderPath + shader.VariantIndex?.ToString() ?? ""];
+						//var shaderFilePath = ShaderConnector.ShaderToFile[shader.Connector as ShaderConnector];
 						//if (shaderFilePath.Length > Thundagun.MAX_STRING_LENGTH)
 							//shaderFilePath = shaderFilePath.Substring(0, Math.Min(shaderFilePath.Length, Thundagun.MAX_STRING_LENGTH));
 						shaderFilePaths.Add(shaderFilePath);

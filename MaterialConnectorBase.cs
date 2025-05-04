@@ -38,7 +38,7 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 		}
 	}
 	public Asset Asset;
-	public List<MaterialProperty> Properties = new();
+	//public List<MaterialProperty> Properties = new();
 	public Queue<MaterialAction> actionQueue = new();
 	public RawValueList<float4x4> matrices = new();
 	public ulong ownerId;
@@ -58,7 +58,7 @@ public class MaterialConnectorBase : ISharedMaterialConnector, ISharedMaterialPr
 
 		//UniLog.Log($"InitializeMaterialProperties: {elem?.ReferenceID.ToString() ?? "NULL"} - {string.Join(',', properties.Select(p => p.Name))}");
 
-		Properties = properties;
+		//Properties = properties;
 
 		foreach (var prop in properties)
 		{

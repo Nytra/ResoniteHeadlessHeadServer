@@ -10,6 +10,7 @@ public class ShaderConnector : IShaderConnector
 	public string File;
 	public string LocalPath;
 	public static Dictionary<string, string> LocalPathToFile = new();
+	public static Dictionary<ShaderConnector, string> ShaderToFile = new();
 	public Asset Asset;
 	public void Initialize(Asset asset)
 	{
@@ -22,13 +23,20 @@ public class ShaderConnector : IShaderConnector
 	{
 		File = file ?? "NULL";
 
-		LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
+		if (LocalPath == null || LocalPath == "NULL") 
+			LocalPath = Asset?.AssetURL?.LocalPath ?? "NULL";
 
-		if (File != "NULL" && LocalPath != "NULL" && !LocalPathToFile.ContainsKey(LocalPath))
+		//lock (ShaderToFile)
+		//{
+			//ShaderToFile[this] = File;
+		//}
+
+		if (File != "NULL" && LocalPath != "NULL")// && !LocalPathToFile.ContainsKey(LocalPath))
 		{
+			var shader = Asset as Shader;
 			lock (LocalPathToFile)
 			{
-				LocalPathToFile[LocalPath] = File;
+				LocalPathToFile[LocalPath + shader.VariantIndex?.ToString() ?? ""] = File;
 			}
 		}
 

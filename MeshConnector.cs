@@ -81,23 +81,24 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 	ulong ownerId;
 	BoundingBox bounds;
 	MeshUploadHint uploadHint;
+	MeshX mesh;
 	//int blendShapeCount;
 	//int boneCount;
 	//bool hasBoneBindings;
-	//int vertCount;
+	int vertCount;
 	//MeshX mesh;
 	//int submeshCount;
 	public ApplyChangesMeshConnector(MeshConnector owner) : base(owner)
 	{
 		localPath = owner.LocalPath;
 		ownerId = owner.ownerId;
-		var mesh = owner.Mesh;
 		bounds = owner.Bounds;
 		uploadHint = owner.Hint;
+		mesh = owner.Mesh;
 
 		if (mesh != null)
 		{
-			//vertCount = mesh.RawPositions?.Length ?? 0;
+			//vertCount = mesh.VertexCount;
 			//submeshCount = mesh.SubmeshCount;
 			if (mesh.RawPositions != null)
 			{
@@ -107,6 +108,8 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 					verts.Add(new float3(vert.x, vert.y, vert.z));
 				}
 			}
+
+			vertCount = verts.Count;
 
 			if (mesh.RawNormals != null)
 			{
@@ -215,36 +218,32 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			uv4d = new float4[num][];
 			for (int i = 0; i < num; i++)
 			{
-				if (uploadHint.GetUVChannel(i))
+				switch (mesh.GetUV_Dimension(i))
 				{
-					switch (mesh.GetUV_Dimension(i))
-					{
-						case 0:
-							uv2d[i] = null;
-							uv3d[i] = null;
-							uv4d[i] = null;
-							break;
-						case 2:
-							uv2d[i] = new float2[verts.Count];
-							uv3d[i] = null;
-							uv4d[i] = null;
-							break;
-						case 3:
-							uv2d[i] = null;
-							uv3d[i] = new float3[verts.Count];
-							uv4d[i] = null;
-							break;
-						case 4:
-							uv2d[i] = null;
-							uv3d[i] = null;
-							uv4d[i] = new float4[verts.Count];
-							break;
-					}
+					case 0:
+						uv2d[i] = null;
+						uv3d[i] = null;
+						uv4d[i] = null;
+						break;
+					case 2:
+						uv2d[i] = new float2[vertCount];
+						uv3d[i] = null;
+						uv4d[i] = null;
+						break;
+					case 3:
+						uv2d[i] = null;
+						uv3d[i] = new float3[vertCount];
+						uv4d[i] = null;
+						break;
+					case 4:
+						uv2d[i] = null;
+						uv3d[i] = null;
+						uv4d[i] = new float4[vertCount];
+						break;
 				}
-				
 			}
 
-			if (verts.Count > 0)
+			if (vertCount > 0)
 			{
 				for (int k = 0; k < num; k++)
 				{
@@ -253,13 +252,13 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 						switch (mesh.GetUV_Dimension(k))
 						{
 							case 2:
-								mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], verts.Count);
+								mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], vertCount);
 								break;
 							case 3:
-								mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], verts.Count);
+								mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], vertCount);
 								break;
 							case 4:
-								mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], verts.Count);
+								mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], vertCount);
 								break;
 						}
 					}
@@ -298,7 +297,7 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		buffer.Write(uploadHint[MeshUploadHint.Flag.Readable]);
 
 		//int vertCount = verts.Count;
-		buffer.Write(verts.Count);
+		buffer.Write(vertCount);
 		//buffer.Write(submeshCount);
 
 		//buffer.Write(blendShapeCount);

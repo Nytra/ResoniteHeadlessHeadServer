@@ -6,6 +6,17 @@ using System.Reflection;
 
 namespace Thundagun;
 
+public class BufferManager<T>
+{
+	public T[] data;
+	public void EnsureLength(int len)
+	{
+		if (data == null || data.Length < len)
+		{
+			data = new T[len];
+		}
+	}
+}
 public class Thundagun
 {
 	private static CircularBuffer? buffer;
@@ -18,6 +29,7 @@ public class Thundagun
 	private static Queue<PacketStruct> highPriorityPackets = new();
 	private static int mainBufferId;
 	public const int MAX_STRING_LENGTH = 256; // UTF8
+	public static BufferManager<byte> BufferManager = new();
 
 	private static FieldInfo lastUpdateTimeField = typeof(Engine).GetField("lastUpdateTime", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -174,7 +186,6 @@ public class Thundagun
 	{
 		while (true)
 		{
-			if (buffer?.ShuttingDown ?? true) return;
 			try
 			{
 				if (highPriorityPackets.Count > 0)
@@ -200,7 +211,9 @@ public class Thundagun
 							packetStruct.packet.Serialize(bw);
 							byte[] arr = ms.ToArray();
 							int len = arr.Length;
+							if (buffer?.ShuttingDown ?? true) return;
 							buffer.Write(ref len);
+							if (buffer?.ShuttingDown ?? true) return;
 							buffer.Write(arr, timeout: 5000);
 						}
 						catch (Exception e)
@@ -253,7 +266,9 @@ public class Thundagun
 									highPrio.packet.Serialize(bw2);
 									byte[] arr = ms2.ToArray();
 									int len2 = arr.Length;
+									if (buffer?.ShuttingDown ?? true) return;
 									buffer.Write(ref len2);
+									if (buffer?.ShuttingDown ?? true) return;
 									buffer.Write(arr, timeout: 5000);
 								}
 								catch (Exception e)
@@ -285,7 +300,9 @@ public class Thundagun
 							//ms.Seek(0, SeekOrigin.Begin);
 							byte[] arr = ms.ToArray();
 							int len = arr.Length;
+							if (buffer?.ShuttingDown ?? true) return;
 							buffer.Write(ref len);
+							if (buffer?.ShuttingDown ?? true) return;
 							buffer.Write(arr, timeout: 5000);
 						}
 						catch (Exception e)
@@ -321,12 +338,12 @@ public class Thundagun
 		int num;
 		while (true)
 		{
-			if (returnBuffer?.ShuttingDown ?? true) return;
 			try 
 			{
 				//returnBuffer.Read(out num);
 
 				int len;
+				if (returnBuffer?.ShuttingDown ?? true) return;
 				returnBuffer.Read(out len);
 
 				//UniLog.Log($"returnBuffer debug: {len}");
@@ -335,14 +352,26 @@ public class Thundagun
 				{
 					if (len == 1)
 					{
-						byte[] arr2 = new byte[len];
+						BufferManager.EnsureLength(len);
+						byte[] arr2 = BufferManager.data;
+						if (returnBuffer?.ShuttingDown ?? true) return;
 						returnBuffer.Read(arr2);
 					}
 					continue;
 				}
 
-				byte[] arr = new byte[len];
-				returnBuffer.Read(arr);
+				BufferManager.EnsureLength(len);
+				byte[] arr = BufferManager.data;
+
+				int i = 0;
+				do
+				{
+					if (returnBuffer?.ShuttingDown ?? true) return;
+					var readCount = returnBuffer.Read(arr, i, timeout: 5000);
+					i += readCount;
+				}
+				while (i < len);
+				if (returnBuffer?.ShuttingDown ?? true) return;
 
 				MemoryStream ms = new(arr, 0, len);
 				BinaryReader br = new(ms);
@@ -450,5 +479,6 @@ public enum PacketTypes
 	SetPropertiesTexture,
 	SetDataTexture,
 	ApplyChangesLight,
-	ApplyChangesSkybox
+	ApplyChangesSkybox,
+	ApplyChangesAmbientLightSH2
 }

@@ -182,6 +182,13 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 				submeshes.Add(indicies);
 			}
 
+			bool flag = mesh.BlendShapeCount > 0 && mesh.BoneCount == 0;
+			if (flag)
+			{
+				uploadHint[MeshUploadHint.Flag.BindPoses] = true;
+				uploadHint[MeshUploadHint.Flag.BoneWeights] = true;
+			}
+
 			//hasBoneBindings = mesh.HasBoneBindings;
 			if (mesh.RawBoneBindings != null)
 			{
@@ -247,20 +254,17 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 			{
 				for (int k = 0; k < num; k++)
 				{
-					if (uploadHint.GetUVChannel(k))
+					switch (mesh.GetUV_Dimension(k))
 					{
-						switch (mesh.GetUV_Dimension(k))
-						{
-							case 2:
-								mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], vertCount);
-								break;
-							case 3:
-								mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], vertCount);
-								break;
-							case 4:
-								mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], vertCount);
-								break;
-						}
+						case 2:
+							mesh.GetRawUVs(k).UnsafeCopyTo(uv2d[k], vertCount);
+							break;
+						case 3:
+							mesh.GetRawUVs_3D(k).UnsafeCopyTo(uv3d[k], vertCount);
+							break;
+						case 4:
+							mesh.GetRawUVs_4D(k).UnsafeCopyTo(uv4d[k], vertCount);
+							break;
 					}
 				}
 			}
@@ -493,8 +497,8 @@ public class ApplyChangesMeshConnector : UpdatePacket<MeshConnector>
 		foreach (var blendShapeFrame in blendShapeFrames)
 		{
 			string name = blendShapeFrame.BlendShape.Name ?? "NULL";
-			if (name.Length > Thundagun.MAX_STRING_LENGTH)
-				name = name.Substring(0, Math.Min(name.Length, Thundagun.MAX_STRING_LENGTH));
+			//if (name.Length > Thundagun.MAX_STRING_LENGTH)
+				//name = name.Substring(0, Math.Min(name.Length, Thundagun.MAX_STRING_LENGTH));
 			buffer.WriteString2(name);
 
 			float weight = blendShapeFrame.Weight;

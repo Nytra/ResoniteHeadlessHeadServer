@@ -1,3 +1,5 @@
+DEPRECATED DUE TO RESONITE'S .NET 9 UPDATE (THE SPLITTENING)
+
 This project is in early development.
 
 This repository contains IPC connectors for Resonite that send data to another process using shared memory (memory mapped file) in C#.
